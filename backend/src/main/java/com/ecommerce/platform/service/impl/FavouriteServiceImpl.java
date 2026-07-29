@@ -3,7 +3,6 @@ package com.ecommerce.platform.service.impl;
 import com.ecommerce.platform.dto.response.FavouriteResponse;
 import com.ecommerce.platform.entity.Favourite;
 import com.ecommerce.platform.entity.Product;
-import com.ecommerce.platform.entity.Tenant;
 import com.ecommerce.platform.entity.User;
 import com.ecommerce.platform.exception.ConflictException;
 import com.ecommerce.platform.exception.ResourceNotFoundException;
@@ -36,10 +35,8 @@ public class FavouriteServiceImpl implements FavouriteService {
 
         User user = currentUserService.getCurrentUser();
 
-        Tenant tenant = currentUserService.getCurrentTenant();
-
         Product product = productRepository
-                .findByIdAndTenant(productId, tenant)
+                .findById(productId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Product not found."
@@ -57,7 +54,6 @@ public class FavouriteServiceImpl implements FavouriteService {
         Favourite favourite = new Favourite();
 
         favourite.setUser(user);
-
         favourite.setProduct(product);
 
         favourite = favouriteRepository.save(favourite);
@@ -70,10 +66,8 @@ public class FavouriteServiceImpl implements FavouriteService {
 
         User user = currentUserService.getCurrentUser();
 
-        Tenant tenant = currentUserService.getCurrentTenant();
-
         Product product = productRepository
-                .findByIdAndTenant(productId, tenant)
+                .findById(productId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Product not found."

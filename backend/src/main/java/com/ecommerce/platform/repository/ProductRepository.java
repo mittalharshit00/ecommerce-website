@@ -8,8 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ProductRepository 
+public interface ProductRepository
         extends JpaRepository<Product, Long> {
+
 
 
     Optional<Product> findByIdAndTenant(
@@ -27,6 +28,24 @@ public interface ProductRepository
     Page<Product> findByCategoryIdAndTenant(
             Long categoryId,
             Tenant tenant,
+            Pageable pageable
+    );
+
+
+
+
+    Page<Product> findAll(
+            Pageable pageable
+    );
+
+
+    Optional<Product> findById(
+            Long id
+    );
+
+
+    Page<Product> findByCategoryId(
+            Long categoryId,
             Pageable pageable
     );
 

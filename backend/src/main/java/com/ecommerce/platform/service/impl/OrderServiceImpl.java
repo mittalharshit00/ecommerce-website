@@ -6,7 +6,6 @@ import com.ecommerce.platform.dto.response.OrderResponse;
 import com.ecommerce.platform.entity.Order;
 import com.ecommerce.platform.entity.OrderItem;
 import com.ecommerce.platform.entity.Product;
-import com.ecommerce.platform.entity.Tenant;
 import com.ecommerce.platform.entity.User;
 import com.ecommerce.platform.enums.OrderStatus;
 import com.ecommerce.platform.exception.BadRequestException;
@@ -57,8 +56,6 @@ public class OrderServiceImpl implements OrderService {
 
         User user = currentUserService.getCurrentUser();
 
-        Tenant tenant = currentUserService.getCurrentTenant();
-
         Order order = new Order();
 
         order.setUser(user);
@@ -74,10 +71,7 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemRequest itemRequest : request.getItems()) {
 
             Product product = productRepository
-                    .findByIdAndTenant(
-                            itemRequest.getProductId(),
-                            tenant
-                    )
+                    .findById(itemRequest.getProductId())
                     .orElseThrow(() ->
                             new ResourceNotFoundException(
                                     "Product not found."

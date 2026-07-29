@@ -18,10 +18,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements UserService {
+
 
     private final UserRepository userRepository;
 
@@ -31,14 +33,19 @@ public class UserServiceImpl implements UserService {
 
     private final CurrentUserService currentUserService;
 
+
+
     /**
-     * Finds a user by ID within the current tenant.
+     * Finds a user by ID within current tenant.
      */
     private User getUser(Long id) {
 
-        Tenant tenant = currentUserService.getCurrentTenant();
+        Tenant tenant =
+                currentUserService.getCurrentTenant();
 
-        return userRepository.findByIdAndTenant(id, tenant)
+
+        return userRepository
+                .findByIdAndTenant(id, tenant)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "User not found."
@@ -46,162 +53,242 @@ public class UserServiceImpl implements UserService {
                 );
     }
 
+
+
     /**
-     * Synchronizes the currently authenticated Keycloak user
-     * with the application's User table.
-     *
-     * If the user does not exist:
-     * - Creates the User
-     * - Copies Keycloak user information
-     * - Assigns the default tenant
-     * - Assigns ADMIN or USER role
-     *
-     * If the user already exists:
-     * - Updates username and email
+     * Synchronizes authenticated Keycloak user
+     * with application database.
      */
     @Override
     public UserResponse syncCurrentUser() {
 
-        Jwt jwt = currentUserService.getJwt();
 
-        String keycloakUserId = jwt.getSubject();
+        Jwt jwt =
+                currentUserService.getJwt();
 
-        User user = userRepository
-                .findByKeycloakUserId(keycloakUserId)
-                .orElse(null);
+
+        String keycloakUserId =
+                jwt.getSubject();
+
+
+
+        User user =
+                userRepository
+                        .findByKeycloakUserId(keycloakUserId)
+                        .orElse(null);
+
+
 
         /*
-         * First synchronization:
-         * The application user does not exist yet.
+         * First synchronization
          */
         if (user == null) {
 
+
             user = new User();
 
-            /*
-             * Store Keycloak's unique user ID.
-             */
-            user.setKeycloakUserId(keycloakUserId);
 
-            /*
-             * Copy username from Keycloak.
-             */
+            user.setKeycloakUserId(
+                    keycloakUserId
+            );
+
+
             user.setUsername(
                     currentUserService.getUsername()
             );
 
-            /*
-             * Copy email from Keycloak.
-             */
+
             user.setEmail(
                     currentUserService.getEmail()
             );
 
+
+
             /*
-             * During initial synchronization, use
-             * the application's default tenant.
+             * Tenant assignment
              *
-             * We cannot use getCurrentTenant() here because
-             * the user does not belong to an application
-             * tenant yet.
+             * ADMIN and TENANT are tenant users.
+             *
+             * USER and PLATFORM_ADMIN are global users.
              */
-            user.setTenant(
-                    currentUserService.getDefaultTenant()
-            );
+            if (currentUserService.hasRole("ADMIN")
+                    || currentUserService.hasRole("TENANT")) {
+
+
+                user.setTenant(
+                        currentUserService.getDefaultTenant()
+                );
+
+
+            } else {
+
+
+                user.setTenant(null);
+
+            }
+
+
 
             /*
-             * Determine application role from
-             * the Keycloak JWT.
+             * Determine application role
              */
-            RoleType roleType =
-                    currentUserService.hasRole("ADMIN")
-                            ? RoleType.ADMIN
-                            : RoleType.USER;
+            RoleType roleType;
 
-            /*
-             * Find the corresponding application role.
-             */
+
+            if (currentUserService.hasRole("PLATFORM_ADMIN")) {
+
+
+                roleType =
+                        RoleType.PLATFORM_ADMIN;
+
+
+            } else if (currentUserService.hasRole("ADMIN")) {
+
+
+                roleType =
+                        RoleType.ADMIN;
+
+
+            } else if (currentUserService.hasRole("TENANT")) {
+
+
+                roleType =
+                        RoleType.TENANT;
+
+
+            } else {
+
+
+                roleType =
+                        RoleType.USER;
+
+            }
+
+
+
             Role role =
-                    roleRepository.findByName(roleType)
+                    roleRepository
+                            .findByName(roleType)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Role not found."
                                     )
                             );
 
-            /*
-             * Assign the role to the new user.
-             */
-            user.getRoles().add(role);
+
+            user.getRoles()
+                    .add(role);
+
+
 
         } else {
 
+
             /*
-             * User already exists.
-             *
-             * Synchronize the latest Keycloak
-             * username and email.
+             * Existing user:
+             * update Keycloak data
              */
             user.setUsername(
                     currentUserService.getUsername()
             );
 
+
             user.setEmail(
                     currentUserService.getEmail()
             );
+
+
+
+            /*
+             * Keep tenant assignment consistent
+             *
+             * ADMIN and TENANT -> tenant user
+             *
+             * USER and PLATFORM_ADMIN
+             * -> global user
+             */
+            if (currentUserService.hasRole("ADMIN")
+                    || currentUserService.hasRole("TENANT")) {
+
+
+                user.setTenant(
+                        currentUserService.getDefaultTenant()
+                );
+
+
+            } else {
+
+
+                user.setTenant(null);
+
+            }
         }
 
-        /*
-         * Save the new or updated user.
-         */
-        user = userRepository.save(user);
 
-        /*
-         * Convert entity to response DTO.
-         */
+
+        user =
+                userRepository.save(user);
+
+
+
         return userMapper.toResponse(user);
     }
 
+
+
+
+
     /**
-     * Returns the currently authenticated application user.
+     * Returns currently authenticated user.
      */
     @Override
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser() {
 
-        User user = userRepository
-                .findByKeycloakUserId(
-                        currentUserService.getUserId()
-                )
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found."
+
+        User user =
+                userRepository
+                        .findByKeycloakUserId(
+                                currentUserService.getUserId()
                         )
-                );
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "User not found."
+                                )
+                        );
+
 
         return userMapper.toResponse(user);
     }
 
+
+
+
+
     /**
-     * Returns a specific user belonging
-     * to the current tenant.
+     * Returns tenant user by id.
      */
     @Override
     @Transactional(readOnly = true)
     public UserResponse getById(Long id) {
+
 
         return userMapper.toResponse(
                 getUser(id)
         );
     }
 
+
+
+
+
     /**
-     * Returns all users belonging
-     * to the current tenant.
+     * Returns all users of current tenant.
      */
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getAll(Pageable pageable) {
+
 
         return userRepository
                 .findByTenant(

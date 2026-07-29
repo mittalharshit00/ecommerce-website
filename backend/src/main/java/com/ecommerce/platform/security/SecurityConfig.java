@@ -26,10 +26,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
     ) throws Exception {
+
 
         http
 
@@ -43,6 +45,7 @@ public class SecurityConfig {
                         )
                 )
 
+
                 .exceptionHandling(exception ->
                         exception
                                 .authenticationEntryPoint(
@@ -53,11 +56,14 @@ public class SecurityConfig {
                                 )
                 )
 
+
                 .authorizeHttpRequests(auth -> auth
+
 
                         .requestMatchers(
                                 "/actuator/health"
                         ).permitAll()
+
 
                         .requestMatchers(
                                 "/v3/api-docs/**",
@@ -65,75 +71,108 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Public product GET endpoints
+
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/products/**"
+                        ).permitAll()
+
+
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/*/products/**"
-                        ).permitAll()
+                        ).authenticated()
 
-                        // Public category GET endpoints
+
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/*/categories/**"
                         ).permitAll()
 
-                        // User synchronization
+
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/categories/**"
+                        ).permitAll()
+
+
+
                         .requestMatchers(
                                 "/api/*/users/sync"
                         ).authenticated()
 
-                        // Orders
+
+
                         .requestMatchers(
                                 "/api/*/orders/**"
                         ).authenticated()
 
-                        // Favourites
+
+
                         .requestMatchers(
                                 "/api/*/favourites/**"
                         ).authenticated()
 
-                        // Users
+
+
                         .requestMatchers(
                                 "/api/*/users/**"
                         ).authenticated()
 
-                        // Product creation
+
+
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/*/products/**"
                         ).hasRole("ADMIN")
 
-                        // Product update
+
+
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/*/products/**"
                         ).hasRole("ADMIN")
 
-                        // Product deletion
+
+
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/*/products/**"
                         ).hasRole("ADMIN")
 
-                        // Category modification
+
+
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/*/categories/**"
                         ).hasRole("ADMIN")
 
+
+
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/*/categories/**"
                         ).hasRole("ADMIN")
 
+
+
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/*/categories/**"
                         ).hasRole("ADMIN")
+
+
 
                         .anyRequest()
-                        .authenticated()
+                                .authenticated()
+
                 )
+
+
 
                 .oauth2ResourceServer(resourceServer ->
                         resourceServer.jwt(jwt ->
@@ -143,8 +182,11 @@ public class SecurityConfig {
                         )
                 );
 
+
         return http.build();
     }
+
+
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -158,6 +200,8 @@ public class SecurityConfig {
         };
     }
 
+
+
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
 
@@ -170,36 +214,49 @@ public class SecurityConfig {
         };
     }
 
+
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
+
         CorsConfiguration configuration =
                 new CorsConfiguration();
+
 
         configuration.setAllowedOrigins(
                 List.of("http://localhost:5173")
         );
 
+
         configuration.setAllowedMethods(
                 List.of("*")
         );
+
 
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
+
         configuration.setAllowCredentials(true);
+
+
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
+
 
         source.registerCorsConfiguration(
                 "/**",
                 configuration
         );
 
+
         return source;
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

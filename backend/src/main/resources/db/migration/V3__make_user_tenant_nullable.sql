@@ -1,0 +1,2 @@
+ALTER TABLE users
+MODIFY COLUMN tenant_id BIGINT NULL;

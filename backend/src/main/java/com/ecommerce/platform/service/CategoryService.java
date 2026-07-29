@@ -8,17 +8,39 @@ import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
 
-    CategoryResponse create(CreateCategoryRequest request);
+    CategoryResponse create(
+            CreateCategoryRequest request
+    );
 
-    CategoryResponse getById(Long id);
 
-    Page<CategoryResponse> getAll(Pageable pageable);
+    CategoryResponse getById(
+            Long id
+    );
+
+
+    Page<CategoryResponse> getAll(
+            Pageable pageable
+    );
+
+
+    Page<CategoryResponse> getAllGlobal(
+            Pageable pageable
+    );
+
+
+    CategoryResponse getByIdGlobal(
+            Long id
+    );
+
 
     CategoryResponse update(
             Long id,
             UpdateCategoryRequest request
     );
 
-    void delete(Long id);
+
+    void delete(
+            Long id
+    );
 
 }

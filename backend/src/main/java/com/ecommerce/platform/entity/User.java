@@ -96,7 +96,7 @@ public class User extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "tenant_id",
-            nullable = false,
+            nullable = true,
             foreignKey = @ForeignKey(name = "fk_user_tenant")
     )
     private Tenant tenant;

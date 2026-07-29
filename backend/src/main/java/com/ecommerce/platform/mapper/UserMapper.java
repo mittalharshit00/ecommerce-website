@@ -15,7 +15,13 @@ public interface UserMapper {
     @Mapping(target = "roles", source = "roles")
     UserResponse toResponse(User user);
 
+
     default Set<String> map(Set<Role> roles) {
+
+        if (roles == null) {
+            return Set.of();
+        }
+
         return roles.stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet());

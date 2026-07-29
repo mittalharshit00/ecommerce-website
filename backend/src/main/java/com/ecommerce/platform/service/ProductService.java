@@ -29,6 +29,22 @@ public interface ProductService {
     );
 
 
+    Page<ProductResponse> getAllGlobal(
+            Pageable pageable
+    );
+
+
+    ProductResponse getByIdGlobal(
+            Long id
+    );
+
+
+    Page<ProductResponse> getByCategoryGlobal(
+            Long categoryId,
+            Pageable pageable
+    );
+
+
     ProductResponse update(
             Long id,
             UpdateProductRequest request
