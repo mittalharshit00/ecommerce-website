@@ -1,0 +1,41 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: ecommerce-mysql
+
+    environment:
+      MYSQL_DATABASE: ecommerce_platform
+      MYSQL_USER: ecommerce
+      MYSQL_PASSWORD: ecommerce
+      MYSQL_ROOT_PASSWORD: root
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    restart: always
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: ecommerce-keycloak
+
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+    command:
+      - start-dev
+
+    ports:
+      - "8081:8080"
+
+    restart: always
+
+
+volumes:
+
+  mysql_data:
