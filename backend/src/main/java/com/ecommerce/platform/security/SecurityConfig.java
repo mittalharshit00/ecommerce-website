@@ -2,29 +2,43 @@ package com.ecommerce.platform.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.http.HttpMethod;
+
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
 import org.springframework.security.config.http.SessionCreationPolicy;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    private final UserSyncFilter userSyncFilter;
+
 
 
     @Bean
@@ -37,7 +51,9 @@ public class SecurityConfig {
 
                 .csrf(AbstractHttpConfigurer::disable)
 
+
                 .cors(Customizer.withDefaults())
+
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
@@ -180,10 +196,18 @@ public class SecurityConfig {
                                         jwtAuthenticationConverter
                                 )
                         )
+                )
+
+
+                .addFilterAfter(
+                        userSyncFilter,
+                        BearerTokenAuthenticationFilter.class
                 );
 
 
+
         return http.build();
+
     }
 
 
@@ -197,7 +221,9 @@ public class SecurityConfig {
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Authentication is required."
             );
+
         };
+
     }
 
 
@@ -211,7 +237,9 @@ public class SecurityConfig {
                     HttpServletResponse.SC_FORBIDDEN,
                     "Access denied."
             );
+
         };
+
     }
 
 
@@ -224,9 +252,11 @@ public class SecurityConfig {
                 new CorsConfiguration();
 
 
+
         configuration.setAllowedOrigins(
                 List.of("http://localhost:5173")
         );
+
 
 
         configuration.setAllowedMethods(
@@ -234,9 +264,11 @@ public class SecurityConfig {
         );
 
 
+
         configuration.setAllowedHeaders(
                 List.of("*")
         );
+
 
 
         configuration.setAllowCredentials(true);
@@ -247,13 +279,16 @@ public class SecurityConfig {
                 new UrlBasedCorsConfigurationSource();
 
 
+
         source.registerCorsConfiguration(
                 "/**",
                 configuration
         );
 
 
+
         return source;
+
     }
 
 
@@ -262,5 +297,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
 
         return new BCryptPasswordEncoder();
+
     }
+
 }

@@ -109,6 +109,10 @@ function Categories() {
         );
     }
 
+
+    const logoutUrl =
+        `${window.location.origin}/logout`;
+    
     return (
         <div>
 
@@ -135,6 +139,38 @@ function Categories() {
                     <Link to="/categories">
                         Categories
                     </Link>
+
+                    {" | "}
+
+                    <Link to="/favourites">
+                        Favourites
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/orders">
+                        Orders
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/orders/create">
+                        Create Order
+                    </Link>
+
+                    {" | "}
+
+                    <a
+                        href={logoutUrl}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            window.location.replace(
+                                `${window.location.origin}/logout`
+                            );
+                        }}
+                    >
+                        Logout
+                    </a>
 
                 </nav>
 

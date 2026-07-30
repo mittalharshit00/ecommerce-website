@@ -6,12 +6,21 @@ import {
     removeFavourite
 } from "../services/favouriteService";
 
+
 function Favourites() {
 
     const [favourites, setFavourites] = useState([]);
+
     const [loading, setLoading] = useState(true);
+
     const [page, setPage] = useState(0);
+
     const [totalPages, setTotalPages] = useState(0);
+
+
+    const logoutUrl =
+        `${window.location.origin}/logout`;
+
 
     const loadFavourites = async () => {
 
@@ -24,8 +33,15 @@ function Favourites() {
                 10
             );
 
-            setFavourites(data.content);
-            setTotalPages(data.totalPages);
+
+            setFavourites(
+                data.content
+            );
+
+            setTotalPages(
+                data.totalPages
+            );
+
 
         } catch (error) {
 
@@ -34,14 +50,19 @@ function Favourites() {
         } finally {
 
             setLoading(false);
+
         }
+
     };
+
 
     useEffect(() => {
 
         loadFavourites();
 
     }, [page]);
+
+
 
     const handleRemove = async (
         productId
@@ -53,128 +74,377 @@ function Favourites() {
                 productId
             );
 
+
             loadFavourites();
+
 
         } catch (error) {
 
             console.error(error);
+
         }
+
     };
 
+
+
     if (loading) {
-        return <h2>Loading...</h2>;
+
+        return (
+
+            <div>
+
+                <header>
+
+                    <h1>
+                        Favourites
+                    </h1>
+
+
+                    <nav>
+
+                        <Link to="/dashboard">
+                            Dashboard
+                        </Link>
+
+                        {" | "}
+
+
+                        <Link to="/products">
+                            Products
+                        </Link>
+
+                        {" | "}
+
+
+                        <Link to="/categories">
+                            Categories
+                        </Link>
+
+                        {" | "}
+
+
+                        <Link to="/favourites">
+                            Favourites
+                        </Link>
+
+                        {" | "}
+
+
+                        <Link to="/orders">
+                            Orders
+                        </Link>
+
+                        {" | "}
+
+
+                        <Link to="/orders/create">
+                            Create Order
+                        </Link>
+
+
+                        {" | "}
+
+
+                        <a
+                            href={logoutUrl}
+                            onClick={(event) => {
+
+                                event.preventDefault();
+
+                                window.location.replace(
+                                    `${window.location.origin}/logout`
+                                );
+
+                            }}
+                        >
+                            Logout
+                        </a>
+
+
+                    </nav>
+
+
+                </header>
+
+
+                <h2>
+                    Loading...
+                </h2>
+
+
+            </div>
+
+        );
+
     }
+
+
 
     return (
 
         <div>
 
-            <h1>My Favourites</h1>
+
+            <header>
+
+                <h1>
+                    Favourites
+                </h1>
+
+
+                <nav>
+
+                    <Link to="/dashboard">
+                        Dashboard
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <Link to="/products">
+                        Products
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <Link to="/categories">
+                        Categories
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <Link to="/favourites">
+                        Favourites
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <Link to="/orders">
+                        Orders
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <Link to="/orders/create">
+                        Create Order
+                    </Link>
+
+
+                    {" | "}
+
+
+                    <a
+                        href={logoutUrl}
+                        onClick={(event) => {
+
+                            event.preventDefault();
+
+                            window.location.replace(
+                                `${window.location.origin}/logout`
+                            );
+
+                        }}
+                    >
+                        Logout
+                    </a>
+
+
+                </nav>
+
+
+            </header>
+
+
+
+            <h1>
+                My Favourites
+            </h1>
+
+
 
             <Link to="/products">
                 Back to Products
             </Link>
 
-            <hr/>
 
-            {favourites.length === 0 && (
-                <p>No favourite products.</p>
-            )}
 
-            {favourites.map(favourite => (
+            <hr />
 
-                <div
-                    key={favourite.id}
-                >
 
-                    <h3>
-                        {favourite.productName}
-                    </h3>
+
+            {
+                favourites.length === 0 && (
 
                     <p>
-                        Price: $
-                        {favourite.price}
+                        No favourite products.
                     </p>
 
-                    {favourite.imageUrl && (
+                )
+            }
 
-                        <img
-                            src={
-                                favourite.imageUrl
+
+
+            {
+                favourites.map(
+                    favourite => (
+
+                        <div
+                            key={
+                                favourite.id
                             }
-                            alt={
-                                favourite.productName
+                        >
+
+
+                            <h3>
+                                {
+                                    favourite.productName
+                                }
+                            </h3>
+
+
+
+                            <p>
+                                Price:
+                                {" "}
+                                $
+                                {
+                                    favourite.price
+                                }
+                            </p>
+
+
+
+                            {
+                                favourite.imageUrl && (
+
+                                    <img
+                                        src={
+                                            favourite.imageUrl
+                                        }
+                                        alt={
+                                            favourite.productName
+                                        }
+                                        width="150"
+                                    />
+
+                                )
                             }
-                            width="150"
-                        />
 
-                    )}
 
-                    <br/><br/>
 
-                    <Link
-                        to={`/products/${favourite.productId}`}
-                    >
-                        View Product
-                    </Link>
+                            <br />
+                            <br />
 
-                    {" "}
 
-                    <button
-                        onClick={() =>
-                            handleRemove(
-                                favourite.productId
-                            )
-                        }
-                    >
-                        Remove Favourite
-                    </button>
 
-                    <hr/>
+                            <Link
+                                to={
+                                    `/products/${favourite.productId}`
+                                }
+                            >
+                                View Product
+                            </Link>
 
-                </div>
 
-            ))}
 
-            {totalPages > 1 && (
+                            {" "}
 
-                <div>
 
-                    <button
-                        disabled={page===0}
-                        onClick={() =>
-                            setPage(page-1)
-                        }
-                    >
-                        Previous
-                    </button>
 
-                    {" "}
+                            <button
+                                onClick={() =>
+                                    handleRemove(
+                                        favourite.productId
+                                    )
+                                }
+                            >
+                                Remove Favourite
+                            </button>
 
-                    Page {page+1}
-                    {" / "}
-                    {totalPages}
 
-                    {" "}
 
-                    <button
-                        disabled={
-                            page===totalPages-1
-                        }
-                        onClick={() =>
-                            setPage(page+1)
-                        }
-                    >
-                        Next
-                    </button>
+                            <hr />
 
-                </div>
 
-            )}
+                        </div>
+
+                    )
+                )
+            }
+
+
+
+            {
+                totalPages > 1 && (
+
+                    <div>
+
+
+                        <button
+                            disabled={
+                                page === 0
+                            }
+                            onClick={() =>
+                                setPage(
+                                    page - 1
+                                )
+                            }
+                        >
+                            Previous
+                        </button>
+
+
+
+                        {" "}
+
+
+
+                        Page {page + 1}
+                        {" / "}
+                        {totalPages}
+
+
+
+                        {" "}
+
+
+
+                        <button
+                            disabled={
+                                page === totalPages - 1
+                            }
+                            onClick={() =>
+                                setPage(
+                                    page + 1
+                                )
+                            }
+                        >
+                            Next
+                        </button>
+
+
+                    </div>
+
+                )
+            }
+
+
 
         </div>
 
     );
+
 }
+
 
 export default Favourites;

@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/useAuth";
 
 function Dashboard() {
 
-    const { logout } = useAuth();
+    const logoutUrl =
+        `${window.location.origin}/logout`;
 
     return (
         <div>
@@ -50,9 +50,17 @@ function Dashboard() {
 
                     {" | "}
 
-                    <button onClick={logout}>
+                    <a
+                        href={logoutUrl}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            window.location.replace(
+                                `${window.location.origin}/logout`
+                            );
+                        }}
+                    >
                         Logout
-                    </button>
+                    </a>
                 </nav>
             </header>
 

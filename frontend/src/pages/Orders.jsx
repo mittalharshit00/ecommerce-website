@@ -8,6 +8,7 @@ import {
     getAdminOrders
 } from "../services/orderService";
 
+
 function Orders() {
 
     const { isAdmin, tenant } = useAuth();
@@ -22,9 +23,17 @@ function Orders() {
 
     const [error, setError] = useState("");
 
+
+    const logoutUrl =
+        `${window.location.origin}/logout`;
+
+
     useEffect(() => {
+
         loadOrders();
+
     }, [page]);
+
 
     const loadOrders = async () => {
 
@@ -45,151 +54,386 @@ function Orders() {
                     10
                 );
 
+
             setOrders(data.content);
 
             setTotalPages(data.totalPages);
+
 
         } catch (error) {
 
             console.error(error);
 
-            setError("Unable to load orders.");
+            setError(
+                "Unable to load orders."
+            );
 
         } finally {
 
             setLoading(false);
+
         }
+
     };
+
 
     if (loading) {
 
         return (
+
             <div>
-                <h1>
-                    {isAdmin ? "Tenant Orders" : "My Orders"}
-                </h1>
+
+                <header>
+
+                    <h1>
+                        Orders
+                    </h1>
+
+                    <nav>
+
+                        <Link to="/dashboard">
+                            Dashboard
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/products">
+                            Products
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/categories">
+                            Categories
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/favourites">
+                            Favourites
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/orders">
+                            Orders
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/orders/create">
+                            Create Order
+                        </Link>
+
+                        {" | "}
+
+                        <a
+                            href={logoutUrl}
+                            onClick={(event) => {
+
+                                event.preventDefault();
+
+                                window.location.replace(
+                                    `${window.location.origin}/logout`
+                                );
+
+                            }}
+                        >
+                            Logout
+                        </a>
+
+                    </nav>
+
+                </header>
+
+
                 <p>Loading...</p>
+
             </div>
+
         );
+
     }
+
 
     if (error) {
 
         return (
+
             <div>
-                <h1>
-                    {isAdmin ? "Tenant Orders" : "My Orders"}
-                </h1>
+
+                <header>
+
+                    <h1>
+                        Orders
+                    </h1>
+
+                    <nav>
+
+                        <Link to="/dashboard">
+                            Dashboard
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/products">
+                            Products
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/categories">
+                            Categories
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/favourites">
+                            Favourites
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/orders">
+                            Orders
+                        </Link>
+
+                        {" | "}
+
+                        <Link to="/orders/create">
+                            Create Order
+                        </Link>
+
+                        {" | "}
+
+                        <a
+                            href={logoutUrl}
+                            onClick={(event) => {
+
+                                event.preventDefault();
+
+                                window.location.replace(
+                                    `${window.location.origin}/logout`
+                                );
+
+                            }}
+                        >
+                            Logout
+                        </a>
+
+                    </nav>
+
+                </header>
+
+
                 <p>{error}</p>
+
             </div>
+
         );
+
     }
+
 
     return (
 
         <div>
 
+            <header>
+
+                <h1>
+                    Orders
+                </h1>
+
+                <nav>
+
+                    <Link to="/dashboard">
+                        Dashboard
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/products">
+                        Products
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/categories">
+                        Categories
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/favourites">
+                        Favourites
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/orders">
+                        Orders
+                    </Link>
+
+                    {" | "}
+
+                    <Link to="/orders/create">
+                        Create Order
+                    </Link>
+
+                    {" | "}
+
+                    <a
+                        href={logoutUrl}
+                        onClick={(event) => {
+
+                            event.preventDefault();
+
+                            window.location.replace(
+                                `${window.location.origin}/logout`
+                            );
+
+                        }}
+                    >
+                        Logout
+                    </a>
+
+                </nav>
+
+            </header>
+
+
             <h1>
                 {isAdmin ? "Tenant Orders" : "My Orders"}
             </h1>
 
-            {orders.length === 0 ? (
 
-                <p>No orders found.</p>
+            {
+                orders.length === 0 ? (
 
-            ) : (
+                    <p>
+                        No orders found.
+                    </p>
 
-                orders.map((order) => (
+                ) : (
 
-                    <div
-                        key={order.id}
-                        style={{
-                            border: "1px solid #ccc",
-                            padding: "15px",
-                            marginBottom: "15px"
-                        }}
-                    >
+                    orders.map((order) => (
 
-                        <h3>
-                            Order #{order.id}
-                        </h3>
-
-                        {isAdmin && order.user && (
-
-                            <>
-
-                                <p>
-                                    Customer: {order.user.fullName}
-                                </p>
-
-                                <p>
-                                    Email: {order.user.email}
-                                </p>
-
-                            </>
-
-                        )}
-
-                        <p>
-                            Status: {order.status}
-                        </p>
-
-                        <p>
-                            Total Quantity: {order.totalQuantity}
-                        </p>
-
-                        <p>
-                            Total Amount: ${order.totalAmount}
-                        </p>
-
-                        <Link
-                            to={`/orders/${order.id}`}
+                        <div
+                            key={order.id}
+                            style={{
+                                border:"1px solid #ccc",
+                                padding:"15px",
+                                marginBottom:"15px"
+                            }}
                         >
-                            View Details
-                        </Link>
+
+                            <h3>
+                                Order #{order.id}
+                            </h3>
+
+
+                            {
+                                isAdmin &&
+                                order.user && (
+
+                                    <>
+                                        <p>
+                                            Customer:
+                                            {" "}
+                                            {order.user.fullName}
+                                        </p>
+
+                                        <p>
+                                            Email:
+                                            {" "}
+                                            {order.user.email}
+                                        </p>
+                                    </>
+
+                                )
+                            }
+
+
+                            <p>
+                                Status:
+                                {" "}
+                                {order.status}
+                            </p>
+
+
+                            <p>
+                                Total Quantity:
+                                {" "}
+                                {order.totalQuantity}
+                            </p>
+
+
+                            <p>
+                                Total Amount:
+                                {" "}
+                                ${order.totalAmount}
+                            </p>
+
+
+                            <Link
+                                to={`/orders/${order.id}`}
+                            >
+                                View Details
+                            </Link>
+
+                        </div>
+
+                    ))
+
+                )
+            }
+
+
+            {
+                totalPages > 1 && (
+
+                    <div>
+
+                        <button
+                            disabled={page===0}
+                            onClick={() =>
+                                setPage(page-1)
+                            }
+                        >
+                            Previous
+                        </button>
+
+
+                        {" "}
+
+                        Page {page+1} of {totalPages}
+
+                        {" "}
+
+
+                        <button
+                            disabled={
+                                page>=totalPages-1
+                            }
+                            onClick={() =>
+                                setPage(page+1)
+                            }
+                        >
+                            Next
+                        </button>
 
                     </div>
 
-                ))
+                )
+            }
 
-            )}
-
-            {totalPages > 1 && (
-
-                <div>
-
-                    <button
-                        disabled={page === 0}
-                        onClick={() =>
-                            setPage(page - 1)
-                        }
-                    >
-                        Previous
-                    </button>
-
-                    {" "}
-
-                    <span>
-                        Page {page + 1} of {totalPages}
-                    </span>
-
-                    {" "}
-
-                    <button
-                        disabled={page >= totalPages - 1}
-                        onClick={() =>
-                            setPage(page + 1)
-                        }
-                    >
-                        Next
-                    </button>
-
-                </div>
-
-            )}
 
         </div>
+
     );
+
 }
+
 
 export default Orders;

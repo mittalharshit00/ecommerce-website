@@ -1,8 +1,9 @@
-
 import { Routes, Route } from "react-router-dom";
 
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Logout from "./pages/Logout";
 
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
@@ -12,7 +13,9 @@ import EditProduct from "./pages/EditProduct";
 import Categories from "./pages/Categories";
 import CreateCategory from "./pages/CreateCategory";
 import EditCategory from "./pages/EditCategory";
+
 import Favourites from "./pages/Favourites";
+
 import CreateOrder from "./pages/CreateOrder";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
@@ -26,11 +29,27 @@ function App() {
 
         <Routes>
 
+
+            {/* PUBLIC ROUTES */}
+
+            <Route
+                path="/"
+                element={<Home />}
+            />
+
+
             <Route
                 path="/login"
                 element={<Login />}
             />
 
+            <Route
+                path="/logout"
+                element={<Logout />}
+            />
+
+
+            {/* DASHBOARD */}
 
             <Route
                 path="/dashboard"
@@ -40,6 +59,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
 
 
             {/* PRODUCT ROUTES */}
@@ -53,6 +73,7 @@ function App() {
                 }
             />
 
+
             <Route
                 path="/products/create"
                 element={
@@ -61,6 +82,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
 
             <Route
                 path="/products/:id/edit"
@@ -71,6 +93,7 @@ function App() {
                 }
             />
 
+
             <Route
                 path="/products/:id"
                 element={
@@ -79,6 +102,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
 
 
             {/* CATEGORY ROUTES */}
@@ -92,6 +116,7 @@ function App() {
                 }
             />
 
+
             <Route
                 path="/categories/create"
                 element={
@@ -100,6 +125,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
 
             <Route
                 path="/categories/:id/edit"
@@ -110,6 +136,10 @@ function App() {
                 }
             />
 
+
+
+            {/* FAVOURITES */}
+
             <Route
                 path="/favourites"
                 element={
@@ -118,6 +148,10 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
+
+
+            {/* ORDER ROUTES */}
 
             <Route
                 path="/orders/create"
@@ -128,6 +162,7 @@ function App() {
                 }
             />
 
+
             <Route
                 path="/orders"
                 element={
@@ -136,6 +171,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
 
             <Route
                 path="/orders/:id"
@@ -146,13 +182,21 @@ function App() {
                 }
             />
 
+
+
+            {/* FALLBACK */}
+
             <Route
                 path="*"
-                element={<Login />}
+                element={<Home />}
             />
 
+
         </Routes>
+
     );
+
 }
+
 
 export default App;
