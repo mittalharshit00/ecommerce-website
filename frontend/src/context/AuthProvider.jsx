@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 
 import { AuthContext } from "./AuthContext";
@@ -8,6 +8,9 @@ import {
     logout as logoutUser
 } from "../services/authService";
 
+import { getCurrentTenant } from "../services/tenantService";
+
+
 function getUserRole(token) {
 
     if (!token) {
@@ -16,10 +19,10 @@ function getUserRole(token) {
 
     try {
 
-        const decodedToken = jwtDecode(token);
+        const decoded = jwtDecode(token);
 
         const roles =
-            decodedToken?.realm_access?.roles || [];
+            decoded?.realm_access?.roles || [];
 
         if (roles.includes("ADMIN")) {
             return "ADMIN";
@@ -33,14 +36,12 @@ function getUserRole(token) {
 
     } catch (error) {
 
-        console.error(
-            "Unable to decode access token:",
-            error
-        );
+        console.error(error);
 
         return null;
     }
 }
+
 
 export function AuthProvider({ children }) {
 
@@ -48,40 +49,108 @@ export function AuthProvider({ children }) {
         getAccessToken()
     );
 
+    const [tenant, setTenant] =
+        useState(null);
+
+
+    const role =
+        getUserRole(token);
+
+
+    const isAdmin =
+        role === "ADMIN";
+
+
+    useEffect(() => {
+
+        if (isAdmin) {
+
+            loadTenant();
+
+        } else {
+
+            setTenant(null);
+
+        }
+
+    }, [token, isAdmin]);
+
+
+    const loadTenant = async () => {
+
+        if (!token) {
+
+            setTenant(null);
+
+            return;
+        }
+
+        try {
+
+            const response =
+                await getCurrentTenant();
+
+
+            /*
+             * Adjust this if your backend
+             * returns a different property.
+             */
+
+            setTenant(
+                response.domain
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Unable to load tenant",
+                error
+            );
+
+            setTenant(null);
+        }
+    };
+
+
     const login = (accessToken) => {
 
-        // authService.login() is responsible
-        // for storing the tokens.
-
         setToken(accessToken);
+
     };
+
 
     const logout = () => {
 
         logoutUser();
 
+        setTenant(null);
+
         setToken(null);
+
     };
 
-    const isAuthenticated = Boolean(token);
 
-    const role = getUserRole(token);
+    const isAuthenticated =
+        Boolean(token);
 
-    const isAdmin = role === "ADMIN";
 
     return (
+
         <AuthContext.Provider
             value={{
                 token,
-                isAuthenticated,
                 role,
+                tenant,
+                isAuthenticated,
                 isAdmin,
                 login,
                 logout
             }}
         >
+
             {children}
+
         </AuthContext.Provider>
+
     );
 }
-

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -9,14 +8,13 @@ import {
 
 import { useAuth } from "../context/useAuth";
 
-
 function EditCategory() {
 
     const { id } = useParams();
 
     const navigate = useNavigate();
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [name, setName] = useState("");
 
@@ -24,7 +22,6 @@ function EditCategory() {
     const [saving, setSaving] = useState(false);
 
     const [error, setError] = useState("");
-
 
     useEffect(() => {
 
@@ -35,7 +32,6 @@ function EditCategory() {
         loadCategory();
 
     }, [id, isAdmin]);
-
 
     const loadCategory = async () => {
 
@@ -66,7 +62,6 @@ function EditCategory() {
         }
     };
 
-
     const handleSubmit = async (event) => {
 
         event.preventDefault();
@@ -77,6 +72,7 @@ function EditCategory() {
             setError("");
 
             await updateCategory(
+                tenant,
                 id,
                 {
                     name
@@ -100,7 +96,6 @@ function EditCategory() {
         }
     };
 
-
     if (!isAdmin) {
 
         return (
@@ -123,7 +118,6 @@ function EditCategory() {
         );
     }
 
-
     if (loading) {
 
         return (
@@ -140,7 +134,6 @@ function EditCategory() {
             </div>
         );
     }
-
 
     return (
         <div>
@@ -176,7 +169,6 @@ function EditCategory() {
                         {error}
                     </p>
                 )}
-
 
                 <form
                     onSubmit={handleSubmit}

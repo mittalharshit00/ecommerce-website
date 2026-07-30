@@ -39,13 +39,49 @@ export const getOrderById = async (id) => {
     return response.data;
 };
 
+/**
+ * Admin APIs
+ */
+
+export const getAdminOrders = async (
+    tenant,
+    page = 0,
+    size = 10
+) => {
+
+    const response = await apiClient.get(
+        `/${tenant}/orders`,
+        {
+            params: {
+                page,
+                size
+            }
+        }
+    );
+
+    return response.data;
+};
+
+export const getAdminOrderById = async (
+    tenant,
+    id
+) => {
+
+    const response = await apiClient.get(
+        `/${tenant}/orders/${id}`
+    );
+
+    return response.data;
+};
+
 export const updateOrderStatus = async (
+    tenant,
     id,
     status
 ) => {
 
     const response = await apiClient.patch(
-        `${ORDER_URL}/${id}/status`,
+        `/${tenant}/orders/${id}/status`,
         null,
         {
             params: {

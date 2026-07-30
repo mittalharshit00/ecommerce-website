@@ -1,6 +1,7 @@
 package com.ecommerce.platform.repository;
 
 import com.ecommerce.platform.entity.Order;
+import com.ecommerce.platform.entity.Tenant;
 import com.ecommerce.platform.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,9 @@ import java.util.Optional;
 public interface OrderRepository
         extends JpaRepository<Order, Long> {
 
+    /**
+     * User APIs
+     */
     Optional<Order> findByIdAndUser(
             Long id,
             User user
@@ -18,6 +22,19 @@ public interface OrderRepository
 
     Page<Order> findByUser(
             User user,
+            Pageable pageable
+    );
+
+    /**
+     * Tenant Admin APIs
+     */
+    Optional<Order> findByIdAndUser_Tenant(
+            Long id,
+            Tenant tenant
+    );
+
+    Page<Order> findByUser_Tenant(
+            Tenant tenant,
             Pageable pageable
     );
 

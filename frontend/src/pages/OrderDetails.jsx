@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import { useAuth } from "../context/useAuth";
+
 import {
     getOrderById,
+    getAdminOrderById,
     updateOrderStatus
 } from "../services/orderService";
 
 function OrderDetails() {
 
     const { id } = useParams();
+
+    const { isAdmin, tenant } = useAuth();
 
     const [order, setOrder] = useState(null);
 
@@ -32,7 +37,12 @@ function OrderDetails() {
 
             setError("");
 
-            const data = await getOrderById(id);
+            const data = isAdmin
+                ? await getAdminOrderById(
+                    tenant,
+                    id
+                )
+                : await getOrderById(id);
 
             setOrder(data);
 
@@ -50,34 +60,34 @@ function OrderDetails() {
         }
     };
 
-    const handleStatusUpdate = async () => {
+    const handleUpdateStatus = async () => {
 
         try {
 
             setUpdating(true);
 
-            const updatedOrder =
+            const updated =
                 await updateOrderStatus(
+                    tenant,
                     id,
                     status
                 );
 
-            setOrder(updatedOrder);
-
-            alert("Order status updated.");
+            setOrder(updated);
 
         } catch (error) {
 
             console.error(error);
 
             alert(
-                error.response?.data?.message ||
-                "Unable to update order."
+                error.response?.data?.message ??
+                "Unable to update status."
             );
 
         } finally {
 
             setUpdating(false);
+
         }
     };
 
@@ -101,19 +111,67 @@ function OrderDetails() {
 
             <p>
 
-                <strong>Status:</strong>
-
-                {" "}
+                <strong>Status:</strong>{" "}
 
                 {order.status}
 
             </p>
 
+            {isAdmin && (
+
+                <>
+
+                    <hr />
+
+                    <h3>
+                        Update Status
+                    </h3>
+
+                    <select
+                        value={status}
+                        onChange={(e) =>
+                            setStatus(e.target.value)
+                        }
+                    >
+
+                        <option value="PENDING">
+                            PENDING
+                        </option>
+
+                        <option value="CONFIRMED">
+                            CONFIRMED
+                        </option>
+
+                        <option value="DELIVERED">
+                            DELIVERED
+                        </option>
+
+                        <option value="CANCELLED">
+                            CANCELLED
+                        </option>
+
+                    </select>
+
+                    {" "}
+
+                    <button
+                        onClick={handleUpdateStatus}
+                        disabled={updating}
+                    >
+
+                        {updating
+                            ? "Updating..."
+                            : "Update Status"}
+
+                    </button>
+
+                </>
+
+            )}
+
             <p>
 
-                <strong>Total Quantity:</strong>
-
-                {" "}
+                <strong>Total Quantity:</strong>{" "}
 
                 {order.totalQuantity}
 
@@ -121,9 +179,7 @@ function OrderDetails() {
 
             <p>
 
-                <strong>Total Amount:</strong>
-
-                {" "}
+                <strong>Total Amount:</strong>{" "}
 
                 ${order.totalAmount}
 
@@ -154,9 +210,7 @@ function OrderDetails() {
 
                     <p>
 
-                        Quantity:
-
-                        {" "}
+                        <strong>Quantity:</strong>{" "}
 
                         {item.quantity}
 
@@ -164,9 +218,7 @@ function OrderDetails() {
 
                     <p>
 
-                        Price:
-
-                        {" "}
+                        <strong>Price:</strong>{" "}
 
                         ${item.price}
 
@@ -176,53 +228,6 @@ function OrderDetails() {
 
             ))}
 
-            <hr />
-
-            <h2>
-
-                Update Status
-
-            </h2>
-
-            <select
-                value={status}
-                onChange={(e) =>
-                    setStatus(e.target.value)
-                }
-            >
-
-                <option value="PENDING">
-                    PENDING
-                </option>
-
-                <option value="CONFIRMED">
-                    CONFIRMED
-                </option>
-
-                <option value="DELIVERED">
-                    DELIVERED
-                </option>
-
-                <option value="CANCELLED">
-                    CANCELLED
-                </option>
-
-            </select>
-
-            {" "}
-
-            <button
-                onClick={handleStatusUpdate}
-                disabled={updating}
-            >
-
-                {updating
-                    ? "Updating..."
-                    : "Update Status"}
-
-            </button>
-
-            <br />
             <br />
 
             <Link to="/orders">

@@ -14,7 +14,7 @@ function EditProduct() {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [categories, setCategories] = useState([]);
 
@@ -101,14 +101,18 @@ function EditProduct() {
             setSaving(true);
             setError("");
 
-            await updateProduct(id, {
-                name: formData.name,
-                description: formData.description,
-                imageUrl: formData.imageUrl,
-                price: Number(formData.price),
-                quantity: Number(formData.quantity),
-                categoryId: Number(formData.categoryId)
-            });
+            await updateProduct(
+                tenant,
+                id,
+                {
+                    name: formData.name,
+                    description: formData.description,
+                    imageUrl: formData.imageUrl,
+                    price: Number(formData.price),
+                    quantity: Number(formData.quantity),
+                    categoryId: Number(formData.categoryId)
+                }
+            );
 
             navigate(`/products/${id}`);
 

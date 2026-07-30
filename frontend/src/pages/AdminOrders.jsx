@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "../context/useAuth";
-
 import {
-    getOrders,
-    getAdminOrders
+    getAdminOrders,
+    updateOrderStatus
 } from "../services/orderService";
 
-function Orders() {
+const TENANT = "local";
 
-    const { isAdmin, tenant } = useAuth();
+function AdminOrders() {
 
     const [orders, setOrders] = useState([]);
 
@@ -34,16 +32,11 @@ function Orders() {
 
             setError("");
 
-            const data = isAdmin
-                ? await getAdminOrders(
-                    tenant,
-                    page,
-                    10
-                )
-                : await getOrders(
-                    page,
-                    10
-                );
+            const data = await getAdminOrders(
+                TENANT,
+                page,
+                10
+            );
 
             setOrders(data.content);
 
@@ -61,37 +54,49 @@ function Orders() {
         }
     };
 
+    const handleStatusUpdate = async (
+        orderId,
+        status
+    ) => {
+
+        try {
+
+            await updateOrderStatus(
+                TENANT,
+                orderId,
+                status
+            );
+
+            alert("Order status updated.");
+
+            loadOrders();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to update status."
+            );
+        }
+    };
+
     if (loading) {
 
-        return (
-            <div>
-                <h1>
-                    {isAdmin ? "Tenant Orders" : "My Orders"}
-                </h1>
-                <p>Loading...</p>
-            </div>
-        );
+        return <p>Loading orders...</p>;
     }
 
     if (error) {
 
-        return (
-            <div>
-                <h1>
-                    {isAdmin ? "Tenant Orders" : "My Orders"}
-                </h1>
-                <p>{error}</p>
-            </div>
-        );
+        return <p>{error}</p>;
     }
 
     return (
 
         <div>
 
-            <h1>
-                {isAdmin ? "Tenant Orders" : "My Orders"}
-            </h1>
+            <h1>Tenant Orders</h1>
 
             {orders.length === 0 ? (
 
@@ -99,7 +104,7 @@ function Orders() {
 
             ) : (
 
-                orders.map((order) => (
+                orders.map(order => (
 
                     <div
                         key={order.id}
@@ -111,19 +116,29 @@ function Orders() {
                     >
 
                         <h3>
+
                             Order #{order.id}
+
                         </h3>
 
-                        {isAdmin && order.user && (
+                        {order.user && (
 
                             <>
 
                                 <p>
-                                    Customer: {order.user.fullName}
+
+                                    <strong>Customer:</strong>{" "}
+
+                                    {order.user.fullName}
+
                                 </p>
 
                                 <p>
-                                    Email: {order.user.email}
+
+                                    <strong>Email:</strong>{" "}
+
+                                    {order.user.email}
+
                                 </p>
 
                             </>
@@ -131,19 +146,66 @@ function Orders() {
                         )}
 
                         <p>
-                            Status: {order.status}
+
+                            <strong>Status:</strong>{" "}
+
+                            {order.status}
+
                         </p>
 
                         <p>
-                            Total Quantity: {order.totalQuantity}
+
+                            <strong>Total Quantity:</strong>{" "}
+
+                            {order.totalQuantity}
+
                         </p>
 
                         <p>
-                            Total Amount: ${order.totalAmount}
+
+                            <strong>Total Amount:</strong>{" "}
+
+                            ${order.totalAmount}
+
                         </p>
+
+                        <select
+                            defaultValue={order.status}
+                            onChange={(e) =>
+                                handleStatusUpdate(
+                                    order.id,
+                                    e.target.value
+                                )
+                            }
+                        >
+
+                            <option value="PENDING">
+                                PENDING
+                            </option>
+
+                            <option value="CONFIRMED">
+                                CONFIRMED
+                            </option>
+
+                            <option value="SHIPPED">
+                                SHIPPED
+                            </option>
+
+                            <option value="DELIVERED">
+                                DELIVERED
+                            </option>
+
+                            <option value="CANCELLED">
+                                CANCELLED
+                            </option>
+
+                        </select>
+
+                        <br />
+                        <br />
 
                         <Link
-                            to={`/orders/${order.id}`}
+                            to={`/admin/orders/${order.id}`}
                         >
                             View Details
                         </Link>
@@ -170,7 +232,9 @@ function Orders() {
                     {" "}
 
                     <span>
+
                         Page {page + 1} of {totalPages}
+
                     </span>
 
                     {" "}
@@ -189,7 +253,8 @@ function Orders() {
             )}
 
         </div>
+
     );
 }
 
-export default Orders;
+export default AdminOrders;

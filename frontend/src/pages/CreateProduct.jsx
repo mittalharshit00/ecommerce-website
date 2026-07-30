@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -10,7 +9,7 @@ function CreateProduct() {
 
     const navigate = useNavigate();
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [categories, setCategories] = useState([]);
 
@@ -117,7 +116,10 @@ function CreateProduct() {
                 categoryId: Number(formData.categoryId)
             };
 
-            await createProduct(product);
+            await createProduct(
+                tenant,
+                product
+            );
 
             navigate("/products");
 
@@ -354,4 +356,3 @@ function CreateProduct() {
 }
 
 export default CreateProduct;
-

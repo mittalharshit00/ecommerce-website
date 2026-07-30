@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -9,10 +8,9 @@ import {
 
 import { useAuth } from "../context/useAuth";
 
-
 function Categories() {
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [categories, setCategories] = useState([]);
 
@@ -21,7 +19,6 @@ function Categories() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
 
     const loadCategories = async () => {
 
@@ -56,13 +53,11 @@ function Categories() {
         }
     };
 
-
     useEffect(() => {
 
         loadCategories();
 
     }, [page]);
-
 
     const handleDelete = async (id) => {
 
@@ -78,7 +73,10 @@ function Categories() {
 
             setError("");
 
-            await deleteCategory(id);
+            await deleteCategory(
+                tenant,
+                id
+            );
 
             /*
              * Reload current page after deletion.
@@ -96,7 +94,6 @@ function Categories() {
         }
     };
 
-
     if (loading) {
 
         return (
@@ -111,7 +108,6 @@ function Categories() {
             </div>
         );
     }
-
 
     return (
         <div>
@@ -174,7 +170,6 @@ function Categories() {
                     </p>
                 )}
 
-
                 {categories.length === 0 ? (
 
                     <p>
@@ -199,7 +194,6 @@ function Categories() {
                                     <p>
                                         ID: {category.id}
                                     </p>
-
 
                                     {/*
                                      * ADMIN ONLY
@@ -239,7 +233,6 @@ function Categories() {
 
                     </div>
                 )}
-
 
                 {totalPages > 1 && (
 
@@ -284,4 +277,3 @@ function Categories() {
 }
 
 export default Categories;
-

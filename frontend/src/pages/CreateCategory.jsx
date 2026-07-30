@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -8,18 +7,16 @@ import {
 
 import { useAuth } from "../context/useAuth";
 
-
 function CreateCategory() {
 
     const navigate = useNavigate();
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [name, setName] = useState("");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
 
     if (!isAdmin) {
 
@@ -43,7 +40,6 @@ function CreateCategory() {
         );
     }
 
-
     const handleSubmit = async (event) => {
 
         event.preventDefault();
@@ -53,9 +49,12 @@ function CreateCategory() {
             setLoading(true);
             setError("");
 
-            await createCategory({
-                name
-            });
+            await createCategory(
+                tenant,
+                {
+                    name
+                }
+            );
 
             navigate("/categories");
 
@@ -73,7 +72,6 @@ function CreateCategory() {
             setLoading(false);
         }
     };
-
 
     return (
         <div>
@@ -109,7 +107,6 @@ function CreateCategory() {
                         {error}
                     </p>
                 )}
-
 
                 <form
                     onSubmit={handleSubmit}

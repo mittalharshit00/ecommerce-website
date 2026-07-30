@@ -20,6 +20,14 @@ public interface OrderService {
             Pageable pageable
     );
 
+    Page<OrderResponse> getAllTenantOrders(
+            Pageable pageable
+    );
+
+    OrderResponse getAdminOrderById(
+            Long id
+    );
+
     OrderResponse updateStatus(
             Long id,
             OrderStatus status

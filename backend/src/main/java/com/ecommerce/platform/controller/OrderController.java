@@ -2,7 +2,6 @@ package com.ecommerce.platform.controller;
 
 import com.ecommerce.platform.dto.request.order.CreateOrderRequest;
 import com.ecommerce.platform.dto.response.OrderResponse;
-import com.ecommerce.platform.enums.OrderStatus;
 import com.ecommerce.platform.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(
-
             @Valid
             @RequestBody
             CreateOrderRequest request
@@ -48,20 +46,6 @@ public class OrderController {
 
         return ResponseEntity.ok(
                 orderService.getById(id)
-        );
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<OrderResponse> updateStatus(
-            @PathVariable Long id,
-            @RequestParam OrderStatus status
-    ) {
-
-        return ResponseEntity.ok(
-                orderService.updateStatus(
-                        id,
-                        status
-                )
         );
     }
 }

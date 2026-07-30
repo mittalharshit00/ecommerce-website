@@ -1,9 +1,7 @@
 import api from "./api";
 import apiClient from "./apiClient";
-import { TENANT_NAME } from "../constants";
 
 const PRODUCT_URL = "/products";
-const ADMIN_PRODUCT_URL = `/${TENANT_NAME}/products`;
 
 export const getProducts = async (
     page = 0,
@@ -23,7 +21,6 @@ export const getProducts = async (
     return response.data;
 };
 
-
 export const getProductById = async (id) => {
 
     const response = await api.get(
@@ -32,7 +29,6 @@ export const getProductById = async (id) => {
 
     return response.data;
 };
-
 
 export const getProductsByCategory = async (
     categoryId,
@@ -53,35 +49,39 @@ export const getProductsByCategory = async (
     return response.data;
 };
 
-
-export const createProduct = async (product) => {
+export const createProduct = async (
+    tenant,
+    product
+) => {
 
     const response = await apiClient.post(
-        ADMIN_PRODUCT_URL,
+        `/${tenant}/products`,
         product
     );
 
     return response.data;
 };
 
-
 export const updateProduct = async (
+    tenant,
     id,
     product
 ) => {
 
     const response = await apiClient.put(
-        `${ADMIN_PRODUCT_URL}/${id}`,
+        `/${tenant}/products/${id}`,
         product
     );
 
     return response.data;
 };
 
-
-export const deleteProduct = async (id) => {
+export const deleteProduct = async (
+    tenant,
+    id
+) => {
 
     await apiClient.delete(
-        `${ADMIN_PRODUCT_URL}/${id}`
+        `/${tenant}/products/${id}`
     );
 };

@@ -6,6 +6,7 @@ import com.ecommerce.platform.dto.response.OrderResponse;
 import com.ecommerce.platform.entity.Order;
 import com.ecommerce.platform.entity.OrderItem;
 import com.ecommerce.platform.entity.Product;
+import com.ecommerce.platform.entity.Tenant;
 import com.ecommerce.platform.entity.User;
 import com.ecommerce.platform.enums.OrderStatus;
 import com.ecommerce.platform.exception.BadRequestException;
@@ -38,12 +39,31 @@ public class OrderServiceImpl implements OrderService {
 
     private final CurrentUserService currentUserService;
 
+    /**
+     * User can access only their own orders.
+     */
     private Order getOrder(Long id) {
 
         User user = currentUserService.getCurrentUser();
 
         return orderRepository
                 .findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Order not found."
+                        )
+                );
+    }
+
+    /**
+     * Tenant admin can access any order within their tenant.
+     */
+    private Order getTenantOrder(Long id) {
+
+        Tenant tenant = currentUserService.getCurrentTenant();
+
+        return orderRepository
+                .findByIdAndUser_Tenant(id, tenant)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Order not found."
@@ -151,12 +171,37 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponse> getAllTenantOrders(
+            Pageable pageable
+    ) {
+
+        Tenant tenant = currentUserService.getCurrentTenant();
+
+        return orderRepository
+                .findByUser_Tenant(
+                        tenant,
+                        pageable
+                )
+                .map(orderMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getAdminOrderById(Long id) {
+
+        return orderMapper.toResponse(
+                getTenantOrder(id)
+        );
+    }
+
+    @Override
     public OrderResponse updateStatus(
             Long id,
             OrderStatus status
     ) {
 
-        Order order = getOrder(id);
+        Order order = getTenantOrder(id);
 
         order.setStatus(status);
 

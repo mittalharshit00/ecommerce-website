@@ -16,7 +16,7 @@ import { useAuth } from "../context/useAuth";
 
 function Products() {
 
-    const { isAdmin } = useAuth();
+    const { isAdmin, tenant } = useAuth();
 
     const [products, setProducts] = useState([]);
     const [favouriteIds, setFavouriteIds] = useState([]);
@@ -142,7 +142,10 @@ function Products() {
 
         try {
 
-            await deleteProduct(id);
+            await deleteProduct(
+                tenant,
+                id
+            );
 
             setProducts(currentProducts =>
                 currentProducts.filter(
