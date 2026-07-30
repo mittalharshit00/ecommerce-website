@@ -1,0 +1,1 @@
+export const TENANT_NAME = "local";

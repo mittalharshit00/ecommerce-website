@@ -1,14 +1,16 @@
-
+import api from "./api";
 import apiClient from "./apiClient";
+import { TENANT_NAME } from "../constants";
 
 const PRODUCT_URL = "/products";
+const ADMIN_PRODUCT_URL = `/${TENANT_NAME}/products`;
 
 export const getProducts = async (
     page = 0,
     size = 10
 ) => {
 
-    const response = await apiClient.get(
+    const response = await api.get(
         PRODUCT_URL,
         {
             params: {
@@ -21,14 +23,16 @@ export const getProducts = async (
     return response.data;
 };
 
+
 export const getProductById = async (id) => {
 
-    const response = await apiClient.get(
+    const response = await api.get(
         `${PRODUCT_URL}/${id}`
     );
 
     return response.data;
 };
+
 
 export const getProductsByCategory = async (
     categoryId,
@@ -36,7 +40,7 @@ export const getProductsByCategory = async (
     size = 10
 ) => {
 
-    const response = await apiClient.get(
+    const response = await api.get(
         `${PRODUCT_URL}/category/${categoryId}`,
         {
             params: {
@@ -49,15 +53,17 @@ export const getProductsByCategory = async (
     return response.data;
 };
 
+
 export const createProduct = async (product) => {
 
     const response = await apiClient.post(
-        PRODUCT_URL,
+        ADMIN_PRODUCT_URL,
         product
     );
 
     return response.data;
 };
+
 
 export const updateProduct = async (
     id,
@@ -65,17 +71,17 @@ export const updateProduct = async (
 ) => {
 
     const response = await apiClient.put(
-        `${PRODUCT_URL}/${id}`,
+        `${ADMIN_PRODUCT_URL}/${id}`,
         product
     );
 
     return response.data;
 };
 
+
 export const deleteProduct = async (id) => {
 
     await apiClient.delete(
-        `${PRODUCT_URL}/${id}`
+        `${ADMIN_PRODUCT_URL}/${id}`
     );
 };
-

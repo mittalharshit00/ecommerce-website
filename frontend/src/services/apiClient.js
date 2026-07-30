@@ -8,13 +8,10 @@ import {
 
 
 const apiClient = axios.create({
-    baseURL: "http://localhost:8080/api/local"
+    baseURL: "http://localhost:8080/api"
 });
 
 
-/*
- * Add access token to every request.
- */
 apiClient.interceptors.request.use(
     (config) => {
 
@@ -36,9 +33,6 @@ apiClient.interceptors.request.use(
 );
 
 
-/*
- * Handle expired access token.
- */
 apiClient.interceptors.response.use(
 
     (response) => {
@@ -52,12 +46,6 @@ apiClient.interceptors.response.use(
             error.config;
 
 
-        /*
-         * Only try refresh when:
-         *
-         * 1. Backend returned 401
-         * 2. We haven't already retried this request
-         */
         if (
             error.response?.status === 401 &&
             !originalRequest._retry
@@ -75,17 +63,10 @@ apiClient.interceptors.response.use(
                     await refreshAccessToken();
 
 
-                /*
-                 * Put new token on the
-                 * original request.
-                 */
                 originalRequest.headers.Authorization =
                     `Bearer ${newAccessToken}`;
 
 
-                /*
-                 * Retry original request.
-                 */
                 return apiClient(
                     originalRequest
                 );
@@ -97,13 +78,6 @@ apiClient.interceptors.response.use(
                     refreshError
                 );
 
-
-                /*
-                 * Refresh token itself is no
-                 * longer valid.
-                 *
-                 * NOW we require login.
-                 */
                 logout();
 
                 window.location.href =
@@ -115,10 +89,8 @@ apiClient.interceptors.response.use(
             }
         }
 
-
         return Promise.reject(error);
     }
 );
-
 
 export default apiClient;

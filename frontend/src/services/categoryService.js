@@ -1,15 +1,16 @@
-
+import api from "./api";
 import apiClient from "./apiClient";
+import { TENANT_NAME } from "../constants";
 
 const CATEGORY_URL = "/categories";
-
+const ADMIN_CATEGORY_URL = `/${TENANT_NAME}/categories`;
 
 export const getCategories = async (
     page = 0,
     size = 10
 ) => {
 
-    const response = await apiClient.get(
+    const response = await api.get(
         CATEGORY_URL,
         {
             params: {
@@ -25,7 +26,7 @@ export const getCategories = async (
 
 export const getCategoryById = async (id) => {
 
-    const response = await apiClient.get(
+    const response = await api.get(
         `${CATEGORY_URL}/${id}`
     );
 
@@ -36,7 +37,7 @@ export const getCategoryById = async (id) => {
 export const createCategory = async (category) => {
 
     const response = await apiClient.post(
-        CATEGORY_URL,
+        ADMIN_CATEGORY_URL,
         category
     );
 
@@ -50,7 +51,7 @@ export const updateCategory = async (
 ) => {
 
     const response = await apiClient.put(
-        `${CATEGORY_URL}/${id}`,
+        `${ADMIN_CATEGORY_URL}/${id}`,
         category
     );
 
@@ -61,7 +62,6 @@ export const updateCategory = async (
 export const deleteCategory = async (id) => {
 
     await apiClient.delete(
-        `${CATEGORY_URL}/${id}`
+        `${ADMIN_CATEGORY_URL}/${id}`
     );
 };
-
