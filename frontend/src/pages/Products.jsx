@@ -27,6 +27,14 @@ function Products() {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
+    const navItems = [
+        { to: "/dashboard", label: "Dashboard" },
+        { to: "/products", label: "Products" },
+        { to: "/categories", label: "Categories" },
+        { to: "/favourites", label: "Favourites" },
+        { to: "/orders", label: "Orders" }
+    ];
+
     const loadFavourites = useCallback(async () => {
 
         try {
@@ -165,232 +173,136 @@ function Products() {
         }
     };
 
-    if (loading) {
+    const renderContent = () => {
+        if (loading) {
+            return (
+                <div className="card card-soft border-0 p-4 text-center">
+                    <div className="spinner-border text-primary mx-auto mb-3" role="status" />
+                    <h2 className="h5">Loading products...</h2>
+                    <p className="text-muted mb-0">Please wait while we load the catalogue.</p>
+                </div>
+            );
+        }
 
-        return (
-            <div>
-
-                <h1>Products</h1>
-
-                <p>
-                    Loading products...
-                </p>
-
-            </div>
-        );
-    }
-
-    if (error) {
-
-        return (
-            <div>
-
-                <h1>Products</h1>
-
-                <p>
+        if (error) {
+            return (
+                <div className="alert alert-danger" role="alert">
                     {error}
-                </p>
+                </div>
+            );
+        }
 
+        if (products.length === 0) {
+            return (
+                <div className="card card-soft border-0 p-4 text-center">
+                    <h2 className="h5 mb-2">No products found</h2>
+                    <p className="text-muted mb-0">Try again later or create a new product.</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="row g-4">
+                {products.map(product => (
+                    <div key={product.id} className="col-12 col-lg-6">
+                        <div className="card card-soft h-100 border-0">
+                            <div className="card-body d-flex flex-column">
+                                <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                                    <div>
+                                        <h3 className="h5 mb-1">{product.name}</h3>
+                                        <p className="text-muted mb-0">{product.categoryName || "Uncategorised"}</p>
+                                    </div>
+                                    <span className="badge text-bg-primary">${product.price}</span>
+                                </div>
+                                <p className="text-muted flex-grow-1">{product.description || "No description available."}</p>
+                                <div className="d-flex flex-wrap gap-2 mb-3">
+                                    <span className="badge text-bg-light">Qty: {product.quantity}</span>
+                                    <span className="badge text-bg-light">Category: {product.categoryName || "—"}</span>
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                    <Link to={`/products/${product.id}`} className="btn btn-outline-primary btn-sm">
+                                        View Details
+                                    </Link>
+                                    {favouriteIds.includes(product.id) ? (
+                                        <button className="btn btn-outline-danger btn-sm" onClick={() => handleRemoveFavourite(product.id)}>
+                                            ♥ Remove Favourite
+                                        </button>
+                                    ) : (
+                                        <button className="btn btn-outline-warning btn-sm" onClick={() => handleAddFavourite(product.id)}>
+                                            ♡ Add Favourite
+                                        </button>
+                                    )}
+                                    {isAdmin && (
+                                        <>
+                                            <Link to={`/products/${product.id}/edit`} className="btn btn-outline-secondary btn-sm">
+                                                Edit
+                                            </Link>
+                                            <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>
+                                                Delete
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         );
-    }
+    };
 
     return (
-        <div>
-
-            <header>
-
-                <h1>Products</h1>
-
-                {isAdmin && (
-                    <p>
-                        <Link to="/products/create">
-                            Create Product
-                        </Link>
-                    </p>
-                )}
-
-                <nav>
-
-                    <Link to="/dashboard">
-                        Dashboard
-                    </Link>
-
-                    {" | "}
-
-                    <Link to="/products">
-                        Products
-                    </Link>
-
-                    {" | "}
-
-                    <Link to="/categories">
-                        Categories
-                    </Link>
-
-                    {" | "}
-
-                    <Link to="/favourites">
-                        My Favourites
-                    </Link>
-
-                    {" | "}
-
-                    <Link to="/orders">
-                        Orders
-                    </Link>
-
-                </nav>
-
+        <div className="min-vh-100 bg-light">
+            <header className="bg-white shadow-sm border-bottom">
+                <div className="container py-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <h1 className="h3 mb-1">Products</h1>
+                        <p className="text-muted mb-0">Browse the catalogue and manage availability.</p>
+                    </div>
+                    <nav className="d-flex flex-wrap align-items-center gap-2">
+                        {navItems.map(item => (
+                            <Link key={item.to} to={item.to} className="nav-link px-3 py-2 rounded-pill">
+                                {item.label}
+                            </Link>
+                        ))}
+                        {isAdmin && (
+                            <Link to="/products/create" className="btn btn-primary btn-sm">
+                                Create Product
+                            </Link>
+                        )}
+                    </nav>
+                </div>
             </header>
 
-            <hr />
-
-            <main>
-
-                <h2>
-                    Product List
-                </h2>
-
-                {products.length === 0 ? (
-
-                    <p>
-                        No products found.
-                    </p>
-
-                ) : (
-
-                    <div>
-
-                        {products.map(product => (
-
-                            <div key={product.id}>
-
-                                <h3>
-                                    {product.name}
-                                </h3>
-
-                                <p>
-                                    {product.description}
-                                </p>
-
-                                <p>
-                                    Price: ${product.price}
-                                </p>
-
-                                <p>
-                                    Quantity: {product.quantity}
-                                </p>
-
-                                <p>
-                                    Category: {product.categoryName}
-                                </p>
-
-                                <Link
-                                    to={`/products/${product.id}`}
-                                >
-                                    View Details
-                                </Link>
-
-                                {" "}
-
-                                {favouriteIds.includes(product.id) ? (
-
-                                    <button
-                                        onClick={() =>
-                                            handleRemoveFavourite(product.id)
-                                        }
-                                    >
-                                        ♥ Remove Favourite
-                                    </button>
-
-                                ) : (
-
-                                    <button
-                                        onClick={() =>
-                                            handleAddFavourite(product.id)
-                                        }
-                                    >
-                                        ♡ Add Favourite
-                                    </button>
-
-                                )}
-
-                                {isAdmin && (
-
-                                    <>
-
-                                        {" "}
-
-                                        <Link
-                                            to={`/products/${product.id}/edit`}
-                                        >
-                                            Edit
-                                        </Link>
-
-                                        {" "}
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleDelete(product.id)
-                                            }
-                                        >
-                                            Delete
-                                        </button>
-
-                                    </>
-
-                                )}
-
-                                <hr />
-
-                            </div>
-
-                        ))}
-
+            <main className="container py-4">
+                <div className="card card-soft border-0 p-4 mb-4">
+                    <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                        <div>
+                            <h2 className="h4 mb-2">Product List</h2>
+                            <p className="text-muted mb-0">Manage your inventory, add favourites and drill into each product.</p>
+                        </div>
+                        {isAdmin && (
+                            <Link to="/products/create" className="btn btn-primary">
+                                Create Product
+                            </Link>
+                        )}
                     </div>
+                </div>
 
-                )}
+                {renderContent()}
 
                 {totalPages > 1 && (
-
-                    <div>
-
-                        <button
-                            disabled={page === 0}
-                            onClick={() =>
-                                setPage(page - 1)
-                            }
-                        >
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                        <button className="btn btn-outline-secondary btn-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
                             Previous
                         </button>
-
-                        {" "}
-
-                        <span>
-                            Page {page + 1} of {totalPages}
-                        </span>
-
-                        {" "}
-
-                        <button
-                            disabled={
-                                page >= totalPages - 1
-                            }
-                            onClick={() =>
-                                setPage(page + 1)
-                            }
-                        >
+                        <span className="text-muted">Page {page + 1} of {totalPages}</span>
+                        <button className="btn btn-outline-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
                             Next
                         </button>
-
                     </div>
-
                 )}
-
             </main>
-
         </div>
     );
 }

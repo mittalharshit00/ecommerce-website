@@ -40,12 +40,9 @@ function EditCategory() {
             setLoading(true);
             setError("");
 
-            const category =
-                await getCategoryById(id);
+            const category = await getCategoryById(id);
 
-            setName(
-                category.name || ""
-            );
+            setName(category.name || "");
 
         } catch (error) {
 
@@ -71,13 +68,7 @@ function EditCategory() {
             setSaving(true);
             setError("");
 
-            await updateCategory(
-                tenant,
-                id,
-                {
-                    name
-                }
-            );
+            await updateCategory(tenant, id, { name });
 
             navigate("/categories");
 
@@ -99,21 +90,12 @@ function EditCategory() {
     if (!isAdmin) {
 
         return (
-            <div>
-
-                <h1>
-                    Access Denied
-                </h1>
-
-                <p>
-                    You do not have permission
-                    to edit categories.
-                </p>
-
-                <Link to="/categories">
-                    Back to Categories
-                </Link>
-
+            <div className="container py-5">
+                <div className="card card-soft border-0 p-4">
+                    <h1 className="h3 mb-2">Access Denied</h1>
+                    <p className="text-muted">You do not have permission to edit categories.</p>
+                    <Link to="/categories" className="btn btn-outline-secondary mt-3">Back to Categories</Link>
+                </div>
             </div>
         );
     }
@@ -121,102 +103,55 @@ function EditCategory() {
     if (loading) {
 
         return (
-            <div>
-
-                <h1>
-                    Edit Category
-                </h1>
-
-                <p>
-                    Loading category...
-                </p>
-
+            <div className="container py-5">
+                <div className="card card-soft border-0 p-4 text-center">
+                    <div className="spinner-border text-primary mx-auto mb-3" role="status" />
+                    <h1 className="h3">Edit Category</h1>
+                    <p className="text-muted">Loading category...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div>
-
-            <header>
-
-                <h1>
-                    Edit Category
-                </h1>
-
-                <nav>
-
-                    <Link to="/dashboard">
-                        Dashboard
-                    </Link>
-
-                    {" | "}
-
-                    <Link to="/categories">
-                        Categories
-                    </Link>
-
-                </nav>
-
+        <div className="min-vh-100 bg-light">
+            <header className="bg-white shadow-sm border-bottom">
+                <div className="container py-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <h1 className="h3 mb-1">Edit Category</h1>
+                        <p className="text-muted mb-0">Update the category name.</p>
+                    </div>
+                    <nav className="d-flex flex-wrap align-items-center gap-2">
+                        <Link to="/dashboard" className="nav-link px-3 py-2 rounded-pill">Dashboard</Link>
+                        <Link to="/categories" className="nav-link px-3 py-2 rounded-pill">Categories</Link>
+                    </nav>
+                </div>
             </header>
 
-            <hr />
-
-            <main>
-
-                {error && (
-                    <p>
-                        {error}
-                    </p>
-                )}
-
-                <form
-                    onSubmit={handleSubmit}
-                >
-
-                    <div>
-
-                        <label>
-                            Category Name
-                        </label>
-
-                        <br />
-
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(event) =>
-                                setName(
-                                    event.target.value
-                                )
-                            }
-                            maxLength={100}
-                            required
-                        />
-
-                    </div>
-
-                    <br />
-
-                    <button
-                        type="submit"
-                        disabled={saving}
-                    >
-                        {saving
-                            ? "Updating..."
-                            : "Update Category"}
-                    </button>
-
-                    {" "}
-
-                    <Link to="/categories">
-                        Cancel
-                    </Link>
-
-                </form>
-
+            <main className="container py-4">
+                <div className="card card-soft border-0 p-4 p-lg-5">
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                            <label className="form-label">Category Name</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                maxLength={100}
+                                required
+                            />
+                        </div>
+                        <div className="d-flex gap-2">
+                            <button type="submit" className="btn btn-primary" disabled={saving}>
+                                {saving ? "Updating..." : "Update Category"}
+                            </button>
+                            <Link to="/categories" className="btn btn-outline-secondary">Cancel</Link>
+                        </div>
+                    </form>
+                </div>
             </main>
-
         </div>
     );
 }

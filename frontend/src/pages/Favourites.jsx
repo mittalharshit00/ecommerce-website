@@ -6,7 +6,6 @@ import {
     removeFavourite
 } from "../services/favouriteService";
 
-
 function Favourites() {
 
     const [favourites, setFavourites] = useState([]);
@@ -17,10 +16,14 @@ function Favourites() {
 
     const [totalPages, setTotalPages] = useState(0);
 
-
-    const logoutUrl =
-        `${window.location.origin}/logout`;
-
+    const navItems = [
+        { to: "/dashboard", label: "Dashboard" },
+        { to: "/products", label: "Products" },
+        { to: "/categories", label: "Categories" },
+        { to: "/favourites", label: "Favourites" },
+        { to: "/orders", label: "Orders" },
+        { to: "/orders/create", label: "Create Order" }
+    ];
 
     const loadFavourites = async () => {
 
@@ -33,15 +36,13 @@ function Favourites() {
                 10
             );
 
-
             setFavourites(
-                data.content
+                data.content || []
             );
 
             setTotalPages(
-                data.totalPages
+                data.totalPages || 0
             );
-
 
         } catch (error) {
 
@@ -55,396 +56,123 @@ function Favourites() {
 
     };
 
-
     useEffect(() => {
 
         loadFavourites();
 
     }, [page]);
 
-
-
-    const handleRemove = async (
-        productId
-    ) => {
+    const handleRemove = async (productId) => {
 
         try {
 
-            await removeFavourite(
-                productId
-            );
-
-
+            await removeFavourite(productId);
             loadFavourites();
-
 
         } catch (error) {
 
             console.error(error);
-
         }
 
     };
 
-
-
     if (loading) {
-
         return (
-
-            <div>
-
-                <header>
-
-                    <h1>
-                        Favourites
-                    </h1>
-
-
-                    <nav>
-
-                        <Link to="/dashboard">
-                            Dashboard
-                        </Link>
-
-                        {" | "}
-
-
-                        <Link to="/products">
-                            Products
-                        </Link>
-
-                        {" | "}
-
-
-                        <Link to="/categories">
-                            Categories
-                        </Link>
-
-                        {" | "}
-
-
-                        <Link to="/favourites">
-                            Favourites
-                        </Link>
-
-                        {" | "}
-
-
-                        <Link to="/orders">
-                            Orders
-                        </Link>
-
-                        {" | "}
-
-
-                        <Link to="/orders/create">
-                            Create Order
-                        </Link>
-
-
-                        {" | "}
-
-
-                        <a
-                            href={logoutUrl}
-                            onClick={(event) => {
-
-                                event.preventDefault();
-
-                                window.location.replace(
-                                    `${window.location.origin}/logout`
-                                );
-
-                            }}
-                        >
-                            Logout
-                        </a>
-
-
-                    </nav>
-
-
+            <div className="min-vh-100 bg-light">
+                <header className="bg-white shadow-sm border-bottom">
+                    <div className="container py-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                        <div>
+                            <h1 className="h3 mb-1">Favourites</h1>
+                            <p className="text-muted mb-0">Quick access to the products you care about.</p>
+                        </div>
+                        <nav className="d-flex flex-wrap align-items-center gap-2">
+                            {navItems.map(item => (
+                                <Link key={item.to} to={item.to} className="nav-link px-3 py-2 rounded-pill">
+                                    {item.label}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
                 </header>
-
-
-                <h2>
-                    Loading...
-                </h2>
-
-
+                <main className="container py-4">
+                    <div className="card card-soft border-0 p-4 text-center">
+                        <div className="spinner-border text-primary mx-auto mb-3" role="status" />
+                        <h2 className="h5">Loading favourites...</h2>
+                    </div>
+                </main>
             </div>
-
         );
-
     }
 
-
-
     return (
-
-        <div>
-
-
-            <header>
-
-                <h1>
-                    Favourites
-                </h1>
-
-
-                <nav>
-
-                    <Link to="/dashboard">
-                        Dashboard
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <Link to="/products">
-                        Products
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <Link to="/categories">
-                        Categories
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <Link to="/favourites">
-                        Favourites
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <Link to="/orders">
-                        Orders
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <Link to="/orders/create">
-                        Create Order
-                    </Link>
-
-
-                    {" | "}
-
-
-                    <a
-                        href={logoutUrl}
-                        onClick={(event) => {
-
-                            event.preventDefault();
-
-                            window.location.replace(
-                                `${window.location.origin}/logout`
-                            );
-
-                        }}
-                    >
-                        Logout
-                    </a>
-
-
-                </nav>
-
-
+        <div className="min-vh-100 bg-light">
+            <header className="bg-white shadow-sm border-bottom">
+                <div className="container py-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <h1 className="h3 mb-1">Favourites</h1>
+                        <p className="text-muted mb-0">Your saved products and preferred picks.</p>
+                    </div>
+                    <nav className="d-flex flex-wrap align-items-center gap-2">
+                        {navItems.map(item => (
+                            <Link key={item.to} to={item.to} className="nav-link px-3 py-2 rounded-pill">
+                                {item.label}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
             </header>
 
-
-
-            <h1>
-                My Favourites
-            </h1>
-
-
-
-            <Link to="/products">
-                Back to Products
-            </Link>
-
-
-
-            <hr />
-
-
-
-            {
-                favourites.length === 0 && (
-
-                    <p>
-                        No favourite products.
-                    </p>
-
-                )
-            }
-
-
-
-            {
-                favourites.map(
-                    favourite => (
-
-                        <div
-                            key={
-                                favourite.id
-                            }
-                        >
-
-
-                            <h3>
-                                {
-                                    favourite.productName
-                                }
-                            </h3>
-
-
-
-                            <p>
-                                Price:
-                                {" "}
-                                $
-                                {
-                                    favourite.price
-                                }
-                            </p>
-
-
-
-                            {
-                                favourite.imageUrl && (
-
-                                    <img
-                                        src={
-                                            favourite.imageUrl
-                                        }
-                                        alt={
-                                            favourite.productName
-                                        }
-                                        width="150"
-                                    />
-
-                                )
-                            }
-
-
-
-                            <br />
-                            <br />
-
-
-
-                            <Link
-                                to={
-                                    `/products/${favourite.productId}`
-                                }
-                            >
-                                View Product
-                            </Link>
-
-
-
-                            {" "}
-
-
-
-                            <button
-                                onClick={() =>
-                                    handleRemove(
-                                        favourite.productId
-                                    )
-                                }
-                            >
-                                Remove Favourite
-                            </button>
-
-
-
-                            <hr />
-
-
+            <main className="container py-4">
+                <div className="card card-soft border-0 p-4 mb-4">
+                    <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                        <div>
+                            <h2 className="h4 mb-2">Saved Products</h2>
+                            <p className="text-muted mb-0">Keep track of the items you want to revisit.</p>
                         </div>
+                        <Link to="/products" className="btn btn-primary">Browse Products</Link>
+                    </div>
+                </div>
 
-                    )
-                )
-            }
+                {favourites.length === 0 ? (
+                    <div className="card card-soft border-0 p-4 text-center">
+                        <h2 className="h5 mb-2">No favourites yet</h2>
+                        <p className="text-muted mb-0">Start exploring products and save your favourites.</p>
+                    </div>
+                ) : (
+                    <div className="row g-4">
+                        {favourites.map(favourite => (
+                            <div key={favourite.productId} className="col-12 col-lg-6">
+                                <div className="card card-soft border-0 h-100">
+                                    <div className="card-body d-flex flex-column">
+                                        <h3 className="h5 mb-2">{favourite.productName || favourite.product?.name || `Product ${favourite.productId}`}</h3>
+                                        <p className="text-muted flex-grow-1">{favourite.productDescription || "Favourite item"}</p>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className="badge text-bg-light">Saved</span>
+                                            <button className="btn btn-outline-danger btn-sm" onClick={() => handleRemove(favourite.productId)}>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-
-
-            {
-                totalPages > 1 && (
-
-                    <div>
-
-
-                        <button
-                            disabled={
-                                page === 0
-                            }
-                            onClick={() =>
-                                setPage(
-                                    page - 1
-                                )
-                            }
-                        >
+                {totalPages > 1 && (
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                        <button className="btn btn-outline-secondary btn-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
                             Previous
                         </button>
-
-
-
-                        {" "}
-
-
-
-                        Page {page + 1}
-                        {" / "}
-                        {totalPages}
-
-
-
-                        {" "}
-
-
-
-                        <button
-                            disabled={
-                                page === totalPages - 1
-                            }
-                            onClick={() =>
-                                setPage(
-                                    page + 1
-                                )
-                            }
-                        >
+                        <span className="text-muted">Page {page + 1} of {totalPages}</span>
+                        <button className="btn btn-outline-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
                             Next
                         </button>
-
-
                     </div>
-
-                )
-            }
-
-
-
+                )}
+            </main>
         </div>
-
     );
-
 }
-
 
 export default Favourites;
