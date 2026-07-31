@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface TenantMapper {
 
-    TenantResponse toResponse(Tenant tenant);
+    TenantResponse toResponse(
+            Tenant tenant
+    );
 
 }

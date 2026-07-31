@@ -31,182 +31,160 @@ import java.util.List;
 @Transactional
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
+        private final OrderRepository orderRepository;
 
-    private final ProductRepository productRepository;
+        private final ProductRepository productRepository;
 
-    private final OrderMapper orderMapper;
+        private final OrderMapper orderMapper;
 
-    private final CurrentUserService currentUserService;
+        private final CurrentUserService currentUserService;
 
-    /**
-     * User can access only their own orders.
-     */
-    private Order getOrder(Long id) {
+        /**
+         * User can access only their own orders.
+         */
+        private Order getOrder(Long id) {
 
-        User user = currentUserService.getCurrentUser();
+                User user = currentUserService.getCurrentUser();
 
-        return orderRepository
-                .findByIdAndUser(id, user)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Order not found."
-                        )
-                );
-    }
-
-    /**
-     * Tenant admin can access any order within their tenant.
-     */
-    private Order getTenantOrder(Long id) {
-
-        Tenant tenant = currentUserService.getCurrentTenant();
-
-        return orderRepository
-                .findByIdAndUser_Tenant(id, tenant)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Order not found."
-                        )
-                );
-    }
-
-    @Override
-    public OrderResponse create(CreateOrderRequest request) {
-
-        User user = currentUserService.getCurrentUser();
-
-        Order order = new Order();
-
-        order.setUser(user);
-
-        order.setStatus(OrderStatus.PENDING);
-
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        BigDecimal totalAmount = BigDecimal.ZERO;
-
-        int totalQuantity = 0;
-
-        for (OrderItemRequest itemRequest : request.getItems()) {
-
-            Product product = productRepository
-                    .findById(itemRequest.getProductId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(
-                                    "Product not found."
-                            )
-                    );
-
-            if (product.getQuantity() < itemRequest.getQuantity()) {
-
-                throw new BadRequestException(
-                        "Insufficient stock for product: "
-                                + product.getName()
-                );
-            }
-
-            product.setQuantity(
-                    product.getQuantity()
-                            - itemRequest.getQuantity()
-            );
-
-            OrderItem orderItem = new OrderItem();
-
-            orderItem.setOrder(order);
-
-            orderItem.setProduct(product);
-
-            orderItem.setQuantity(
-                    itemRequest.getQuantity()
-            );
-
-            orderItem.setPrice(
-                    product.getPrice()
-            );
-
-            orderItems.add(orderItem);
-
-            totalQuantity += itemRequest.getQuantity();
-
-            totalAmount = totalAmount.add(
-                    product.getPrice().multiply(
-                            BigDecimal.valueOf(
-                                    itemRequest.getQuantity()
-                            )
-                    )
-            );
+                return orderRepository
+                                .findByIdAndUser(id, user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Order not found."));
         }
 
-        order.setOrderItems(orderItems);
+        /**
+         * Tenant admin can access any order within their tenant.
+         */
+        private Order getTenantOrder(Long id) {
 
-        order.setTotalQuantity(totalQuantity);
+                Tenant tenant = currentUserService.getCurrentTenant();
 
-        order.setTotalAmount(totalAmount);
+                return orderRepository
+                                .findByIdAndUser_Tenant(id, tenant)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Order not found."));
+        }
 
-        order = orderRepository.save(order);
+        @Override
+        public OrderResponse create(CreateOrderRequest request) {
 
-        return orderMapper.toResponse(order);
-    }
+                User user = currentUserService.getCurrentUser();
 
-    @Override
-    @Transactional(readOnly = true)
-    public OrderResponse getById(Long id) {
+                Order order = new Order();
 
-        return orderMapper.toResponse(
-                getOrder(id)
-        );
-    }
+                order.setUser(user);
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<OrderResponse> getMyOrders(Pageable pageable) {
+                order.setStatus(OrderStatus.PENDING);
 
-        return orderRepository
-                .findByUser(
-                        currentUserService.getCurrentUser(),
-                        pageable
-                )
-                .map(orderMapper::toResponse);
-    }
+                List<OrderItem> orderItems = new ArrayList<>();
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllTenantOrders(
-            Pageable pageable
-    ) {
+                BigDecimal totalAmount = BigDecimal.ZERO;
 
-        Tenant tenant = currentUserService.getCurrentTenant();
+                int totalQuantity = 0;
 
-        return orderRepository
-                .findByUser_Tenant(
-                        tenant,
-                        pageable
-                )
-                .map(orderMapper::toResponse);
-    }
+                for (OrderItemRequest itemRequest : request.getItems()) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public OrderResponse getAdminOrderById(Long id) {
+                        Product product = productRepository
+                                        .findById(itemRequest.getProductId())
+                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                                        "Product not found."));
 
-        return orderMapper.toResponse(
-                getTenantOrder(id)
-        );
-    }
+                        if (product.getQuantity() < itemRequest.getQuantity()) {
 
-    @Override
-    public OrderResponse updateStatus(
-            Long id,
-            OrderStatus status
-    ) {
+                                throw new BadRequestException(
+                                                "Insufficient stock for product: "
+                                                                + product.getName());
+                        }
 
-        Order order = getTenantOrder(id);
+                        product.setQuantity(
+                                        product.getQuantity()
+                                                        - itemRequest.getQuantity());
 
-        order.setStatus(status);
+                        OrderItem orderItem = new OrderItem();
 
-        order = orderRepository.save(order);
+                        orderItem.setOrder(order);
 
-        return orderMapper.toResponse(order);
-    }
+                        orderItem.setProduct(product);
+
+                        orderItem.setQuantity(
+                                        itemRequest.getQuantity());
+
+                        orderItem.setPrice(
+                                        product.getPrice());
+
+                        orderItems.add(orderItem);
+
+                        totalQuantity += itemRequest.getQuantity();
+
+                        totalAmount = totalAmount.add(
+                                        product.getPrice().multiply(
+                                                        BigDecimal.valueOf(
+                                                                        itemRequest.getQuantity())));
+                }
+
+                order.setOrderItems(orderItems);
+
+                order.setTotalQuantity(totalQuantity);
+
+                order.setTotalAmount(totalAmount);
+
+                order = orderRepository.save(order);
+
+                return orderMapper.toResponse(order);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public OrderResponse getById(Long id) {
+
+                return orderMapper.toResponse(
+                                getOrder(id));
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public Page<OrderResponse> getMyOrders(Pageable pageable) {
+
+                return orderRepository
+                                .findByUser(
+                                                currentUserService.getCurrentUser(),
+                                                pageable)
+                                .map(orderMapper::toResponse);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public Page<OrderResponse> getAllTenantOrders(
+                        Pageable pageable) {
+
+                Tenant tenant = currentUserService.getCurrentTenant();
+
+                return orderRepository
+                                .findByUser_Tenant(
+                                                tenant,
+                                                pageable)
+                                .map(orderMapper::toResponse);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public OrderResponse getAdminOrderById(Long id) {
+
+                return orderMapper.toResponse(
+                                getTenantOrder(id));
+        }
+
+        @Override
+        public OrderResponse updateStatus(
+                        Long id,
+                        OrderStatus status) {
+
+                Order order = getTenantOrder(id);
+
+                order.setStatus(status);
+
+                order = orderRepository.save(order);
+
+                return orderMapper.toResponse(order);
+        }
 }

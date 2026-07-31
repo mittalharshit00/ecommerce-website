@@ -14,59 +14,62 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TenantRequestValidator {
 
-    private final CurrentUserService currentUserService;
-    private final TenantRepository tenantRepository;
+        private final CurrentUserService currentUserService;
+        private final TenantRepository tenantRepository;
 
-    /**
-     * Used for public endpoints.
-     *
-     * Verifies that the requested tenant exists
-     * and is enabled.
-     */
-    @Transactional(readOnly = true)
-    public void validateTenantExists(String tenantDomain) {
+        /**
+         * Used for public endpoints.
+         *
+         * Verifies that the requested tenant exists
+         * and is enabled.
+         */
+        @Transactional(readOnly = true)
+        public void validateTenantExists(String tenantDomain) {
 
-        Tenant tenant = tenantRepository
-                .findByDomainIgnoreCase(tenantDomain)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Tenant not found."
-                        )
-                );
+                Tenant tenant = tenantRepository
+                                .findByDomainIgnoreCase(tenantDomain)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Tenant not found."));
 
-        if (!Boolean.TRUE.equals(tenant.getEnabled())) {
+                if (!Boolean.TRUE.equals(tenant.getEnabled())) {
 
-            throw new ForbiddenException(
-                    "Tenant is disabled."
-            );
-        }
-    }
-
-    /**
-     * Used for authenticated endpoints.
-     *
-     * Verifies that the authenticated user belongs
-     * to the tenant specified in the URL.
-     */
-    @Transactional(readOnly = true)
-    public void validateUserTenant(String tenantDomain) {
-
-        Tenant currentTenant =
-                currentUserService.getCurrentTenant();
-
-        if (!Boolean.TRUE.equals(currentTenant.getEnabled())) {
-
-            throw new ForbiddenException(
-                    "Tenant is disabled."
-            );
+                        throw new ForbiddenException(
+                                        "Tenant is disabled.");
+                }
         }
 
-        if (!currentTenant.getDomain()
-                .equalsIgnoreCase(tenantDomain)) {
+        /**
+         * Used for authenticated endpoints.
+         *
+         * Verifies that the authenticated user belongs
+         * to the tenant specified in the URL.
+         */
+        @Transactional(readOnly = true)
+        public void validateUserTenant(String tenantDomain) {
 
-            throw new ForbiddenException(
-                    "User does not have access to the requested tenant."
-            );
+                Tenant currentTenant = currentUserService.getCurrentTenant();
+
+                if (!Boolean.TRUE.equals(currentTenant.getEnabled())) {
+
+                        throw new ForbiddenException(
+                                        "Tenant is disabled.");
+                }
+
+                if (!currentTenant.getDomain()
+                                .equalsIgnoreCase(tenantDomain)) {
+
+                        throw new ForbiddenException(
+                                        "User does not have access to the requested tenant.");
+                }
+
+                Tenant requestedTenant = tenantRepository
+                                .findByDomainIgnoreCase(tenantDomain)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Tenant not found."));
+
+                if (!currentTenant.getId().equals(requestedTenant.getId())) {
+                        throw new ForbiddenException(
+                                        "User does not have access to the requested tenant.");
+                }
         }
-    }
 }

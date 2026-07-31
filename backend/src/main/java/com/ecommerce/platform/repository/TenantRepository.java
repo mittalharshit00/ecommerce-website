@@ -14,4 +14,6 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
     boolean existsByDomain(String domain);
 
     boolean existsByDomainIgnoreCase(String domain);
+
+    boolean existsByNameIgnoreCase(String name);
 }

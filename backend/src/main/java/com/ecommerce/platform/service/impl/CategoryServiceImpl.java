@@ -16,180 +16,111 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CategoryServiceImpl implements CategoryService {
 
+        private final CategoryRepository categoryRepository;
 
-    private final CategoryRepository categoryRepository;
+        private final CategoryMapper categoryMapper;
 
-    private final CategoryMapper categoryMapper;
+        private final CurrentUserService currentUserService;
 
-    private final CurrentUserService currentUserService;
+        @Override
+        public CategoryResponse create(
+                        CreateCategoryRequest request) {
 
+                Tenant tenant = currentUserService.getCurrentTenant();
 
+                Category category = categoryMapper.toEntity(request);
 
-    @Override
-    public CategoryResponse create(
-            CreateCategoryRequest request
-    ) {
+                category.setTenant(tenant);
 
-        Tenant tenant =
-                currentUserService.getCurrentTenant();
+                category = categoryRepository.save(category);
 
+                return categoryMapper.toResponse(category);
+        }
 
-        Category category =
-                categoryMapper.toEntity(request);
+        @Override
+        @Transactional(readOnly = true)
+        public CategoryResponse getById(
+                        Long id) {
 
+                return categoryMapper.toResponse(
+                                getCategory(id));
+        }
 
-        category.setTenant(tenant);
+        @Override
+        @Transactional(readOnly = true)
+        public Page<CategoryResponse> getAll(
+                        Pageable pageable) {
 
+                Tenant tenant = currentUserService.getCurrentTenant();
 
-        category =
-                categoryRepository.save(category);
+                return categoryRepository
+                                .findByTenant(
+                                                tenant,
+                                                pageable)
+                                .map(categoryMapper::toResponse);
+        }
 
+        @Override
+        @Transactional(readOnly = true)
+        public Page<CategoryResponse> getAllGlobal(
+                        Pageable pageable) {
 
-        return categoryMapper.toResponse(category);
-    }
+                return categoryRepository
+                                .findAll(pageable)
+                                .map(categoryMapper::toResponse);
+        }
 
+        @Override
+        @Transactional(readOnly = true)
+        public CategoryResponse getByIdGlobal(
+                        Long id) {
 
+                Category category = categoryRepository
+                                .findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Category not found."));
 
+                return categoryMapper.toResponse(category);
+        }
 
+        @Override
+        public CategoryResponse update(
+                        Long id,
+                        UpdateCategoryRequest request) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public CategoryResponse getById(
-            Long id
-    ) {
+                Category category = getCategory(id);
 
-        return categoryMapper.toResponse(
-                getCategory(id)
-        );
-    }
+                category.setName(
+                                request.getName());
 
+                category = categoryRepository.save(category);
 
+                return categoryMapper.toResponse(category);
+        }
 
+        @Override
+        public void delete(
+                        Long id) {
 
+                categoryRepository.delete(
+                                getCategory(id));
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CategoryResponse> getAll(
-            Pageable pageable
-    ) {
+        private Category getCategory(
+                        Long id) {
 
-        Tenant tenant =
-                currentUserService.getCurrentTenant();
+                Tenant tenant = currentUserService.getCurrentTenant();
 
-
-        return categoryRepository
-                .findByTenant(
-                        tenant,
-                        pageable
-                )
-                .map(categoryMapper::toResponse);
-    }
-
-
-
-
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CategoryResponse> getAllGlobal(
-            Pageable pageable
-    ) {
-
-        return categoryRepository
-                .findAll(pageable)
-                .map(categoryMapper::toResponse);
-    }
-
-
-
-
-
-    @Override
-    @Transactional(readOnly = true)
-    public CategoryResponse getByIdGlobal(
-            Long id
-    ) {
-
-        Category category =
-                categoryRepository
-                        .findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Category not found."
-                                )
-                        );
-
-
-        return categoryMapper.toResponse(category);
-    }
-
-
-
-
-
-    @Override
-    public CategoryResponse update(
-            Long id,
-            UpdateCategoryRequest request
-    ) {
-
-        Category category =
-                getCategory(id);
-
-
-        category.setName(
-                request.getName()
-        );
-
-
-        category =
-                categoryRepository.save(category);
-
-
-        return categoryMapper.toResponse(category);
-    }
-
-
-
-
-
-    @Override
-    public void delete(
-            Long id
-    ) {
-
-        categoryRepository.delete(
-                getCategory(id)
-        );
-    }
-
-
-
-
-
-    private Category getCategory(
-            Long id
-    ) {
-
-        Tenant tenant =
-                currentUserService.getCurrentTenant();
-
-
-        return categoryRepository
-                .findByIdAndTenant(
-                        id,
-                        tenant
-                )
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Category not found."
-                        )
-                );
-    }
+                return categoryRepository
+                                .findByIdAndTenant(
+                                                id,
+                                                tenant)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Category not found."));
+        }
 }

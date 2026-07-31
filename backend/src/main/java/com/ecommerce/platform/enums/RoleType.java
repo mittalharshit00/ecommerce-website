@@ -5,7 +5,7 @@ public enum RoleType {
     PLATFORM_ADMIN,
 
     ADMIN,
-
+    
     TENANT,
 
     USER

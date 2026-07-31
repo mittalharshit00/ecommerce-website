@@ -31,3 +31,14 @@ application:
   tenant:
     default-domain: local
     default-name: Local Tenant
+
+
+keycloak:
+  server-url: http://localhost:8081
+  realm: ecommerce
+
+  admin:
+    username: admin
+    password: admin
+
+  client-id: admin-cli

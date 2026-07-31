@@ -32,7 +32,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-public class SecurityConfig {
+public class SecurityConfig {   
 
 
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
@@ -180,6 +180,15 @@ public class SecurityConfig {
                                 HttpMethod.DELETE,
                                 "/api/*/categories/**"
                         ).hasRole("ADMIN")
+
+
+
+                        /*
+                         * Platform administration endpoints
+                         */
+                        .requestMatchers(
+                                "/api/v1/platform/**"
+                        ).hasRole("PLATFORM_ADMIN")
 
 
 
