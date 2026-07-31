@@ -1,3 +1,4 @@
+
 package com.ecommerce.platform.security;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,284 +30,199 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-
 @Configuration
 @RequiredArgsConstructor
-public class SecurityConfig {   
+public class SecurityConfig {
 
+        private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
-    private final JwtAuthenticationConverter jwtAuthenticationConverter;
+        private final UserSyncFilter userSyncFilter;
 
-    private final UserSyncFilter userSyncFilter;
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http) throws Exception {
 
+                http
 
+                                .csrf(AbstractHttpConfigurer::disable)
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+                                .cors(Customizer.withDefaults())
 
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
 
-        http
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(
+                                                                authenticationEntryPoint())
+                                                .accessDeniedHandler(
+                                                                accessDeniedHandler()))
 
-                .csrf(AbstractHttpConfigurer::disable)
+                                .authorizeHttpRequests(auth -> auth
 
+                                                /*
+                                                 * Public static resources
+                                                 */
+                                                .requestMatchers(
+                                                                "/uploads/**")
+                                                .permitAll()
 
-                .cors(Customizer.withDefaults())
+                                                .requestMatchers(
+                                                                "/actuator/health")
+                                                .permitAll()
 
+                                                .requestMatchers(
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html")
+                                                .permitAll()
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
-                )
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/products/**")
+                                                .permitAll()
 
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/*/products/**")
+                                                .authenticated()
 
-                .exceptionHandling(exception ->
-                        exception
-                                .authenticationEntryPoint(
-                                        authenticationEntryPoint()
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/*/categories/**")
+                                                .permitAll()
+
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/categories/**")
+                                                .permitAll()
+
+                                                .requestMatchers(
+                                                                "/api/*/users/sync")
+                                                .authenticated()
+
+                                                .requestMatchers(
+                                                                "/api/*/orders/**")
+                                                .authenticated()
+
+                                                .requestMatchers(
+                                                                "/api/*/favourites/**")
+                                                .authenticated()
+
+                                                .requestMatchers(
+                                                                "/api/*/users/**")
+                                                .authenticated()
+
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/*/products/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/*/products/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                HttpMethod.DELETE,
+                                                                "/api/*/products/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/*/categories/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/*/categories/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                HttpMethod.DELETE,
+                                                                "/api/*/categories/**")
+                                                .hasRole("ADMIN")
+
+                                                /*
+                                                 * Platform administration endpoints
+                                                 */
+                                                .requestMatchers(
+                                                                "/api/v1/platform/**")
+                                                .hasRole("PLATFORM_ADMIN")
+
+                                                .anyRequest()
+                                                .authenticated()
+
                                 )
-                                .accessDeniedHandler(
-                                        accessDeniedHandler()
-                                )
-                )
 
+                                .oauth2ResourceServer(resourceServer -> resourceServer
+                                                .jwt(jwt -> jwt.jwtAuthenticationConverter(
+                                                                jwtAuthenticationConverter)))
 
-                .authorizeHttpRequests(auth -> auth
+                                .addFilterAfter(
+                                                userSyncFilter,
+                                                BearerTokenAuthenticationFilter.class);
 
+                return http.build();
 
-                        .requestMatchers(
-                                "/actuator/health"
-                        ).permitAll()
+        }
 
+        @Bean
+        public AuthenticationEntryPoint authenticationEntryPoint() {
 
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                return (request, response, exception) -> {
 
+                        response.sendError(
+                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                        "Authentication is required.");
 
+                };
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/products/**"
-                        ).permitAll()
+        }
 
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
 
+                return (request, response, exception) -> {
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/*/products/**"
-                        ).authenticated()
+                        response.sendError(
+                                        HttpServletResponse.SC_FORBIDDEN,
+                                        "Access denied.");
 
+                };
 
+        }
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/*/categories/**"
-                        ).permitAll()
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
 
+                CorsConfiguration configuration = new CorsConfiguration();
 
+                configuration.setAllowedOrigins(
+                                List.of("http://localhost:5173"));
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/categories/**"
-                        ).permitAll()
+                configuration.setAllowedMethods(
+                                List.of("*"));
 
+                configuration.setAllowedHeaders(
+                                List.of("*"));
 
+                configuration.setAllowCredentials(true);
 
-                        .requestMatchers(
-                                "/api/*/users/sync"
-                        ).authenticated()
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
+                source.registerCorsConfiguration(
+                                "/**",
+                                configuration);
 
+                return source;
 
-                        .requestMatchers(
-                                "/api/*/orders/**"
-                        ).authenticated()
+        }
 
+        @Bean
+        public PasswordEncoder passwordEncoder() {
 
+                return new BCryptPasswordEncoder();
 
-                        .requestMatchers(
-                                "/api/*/favourites/**"
-                        ).authenticated()
-
-
-
-                        .requestMatchers(
-                                "/api/*/users/**"
-                        ).authenticated()
-
-
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/*/products/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/*/products/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/*/products/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/*/categories/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/*/categories/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/*/categories/**"
-                        ).hasRole("ADMIN")
-
-
-
-                        /*
-                         * Platform administration endpoints
-                         */
-                        .requestMatchers(
-                                "/api/v1/platform/**"
-                        ).hasRole("PLATFORM_ADMIN")
-
-
-
-                        .anyRequest()
-                                .authenticated()
-
-                )
-
-
-
-                .oauth2ResourceServer(resourceServer ->
-                        resourceServer.jwt(jwt ->
-                                jwt.jwtAuthenticationConverter(
-                                        jwtAuthenticationConverter
-                                )
-                        )
-                )
-
-
-                .addFilterAfter(
-                        userSyncFilter,
-                        BearerTokenAuthenticationFilter.class
-                );
-
-
-
-        return http.build();
-
-    }
-
-
-
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-
-        return (request, response, exception) -> {
-
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "Authentication is required."
-            );
-
-        };
-
-    }
-
-
-
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-
-        return (request, response, exception) -> {
-
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Access denied."
-            );
-
-        };
-
-    }
-
-
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-
-        CorsConfiguration configuration =
-                new CorsConfiguration();
-
-
-
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
-        );
-
-
-
-        configuration.setAllowedMethods(
-                List.of("*")
-        );
-
-
-
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
-
-
-
-        configuration.setAllowCredentials(true);
-
-
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-
-
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
-
-
-
-        return source;
-
-    }
-
-
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-
-        return new BCryptPasswordEncoder();
-
-    }
+        }
 
 }

@@ -1,3 +1,4 @@
+
 package com.ecommerce.platform.service.impl;
 
 import com.ecommerce.platform.dto.request.product.CreateProductRequest;
@@ -11,17 +12,26 @@ import com.ecommerce.platform.mapper.ProductMapper;
 import com.ecommerce.platform.repository.CategoryRepository;
 import com.ecommerce.platform.repository.ProductRepository;
 import com.ecommerce.platform.security.CurrentUserService;
+import com.ecommerce.platform.service.FileStorageService;
 import com.ecommerce.platform.service.ProductService;
-import lombok.RequiredArgsConstructor;
+
+import lombok.*;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.web.multipart.MultipartFile;
+
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ProductServiceImpl implements ProductService {
+
 
         private final ProductRepository productRepository;
 
@@ -31,64 +41,157 @@ public class ProductServiceImpl implements ProductService {
 
         private final CurrentUserService currentUserService;
 
+        private final FileStorageService fileStorageService;
+
+
+
+
+
         @Override
         public ProductResponse create(
-                        CreateProductRequest request) {
+                        CreateProductRequest request,
+                        MultipartFile image) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
 
-                Category category = categoryRepository
+
+                Tenant tenant =
+                        currentUserService.getCurrentTenant();
+
+
+
+
+                Category category =
+                        categoryRepository
                                 .findByIdAndTenant(
-                                                request.getCategoryId(),
-                                                tenant)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Category not found."));
+                                        request.getCategoryId(),
+                                        tenant
+                                )
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "Category not found."
+                                        )
+                                );
 
-                Product product = productMapper.toEntity(request);
+
+
+
+
+                String imageUrl =
+                        fileStorageService
+                                .storeProductImage(image);
+
+
+
+
+
+                Product product =
+                        productMapper.toEntity(request);
+
+
 
                 product.setTenant(tenant);
 
                 product.setCategory(category);
 
-                product = productRepository.save(product);
+                product.setImageUrl(imageUrl);
+
+
+
+
+                product =
+                        productRepository.save(product);
+
+
+
 
                 return productMapper.toResponse(product);
+
         }
+
+
+
+
+
+
+
+
 
         private Product getProduct(Long id) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
+
+                Tenant tenant =
+                        currentUserService.getCurrentTenant();
+
+
 
                 return productRepository
-                                .findByIdAndTenant(
-                                                id,
-                                                tenant)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Product not found."));
+                        .findByIdAndTenant(
+                                id,
+                                tenant
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Product not found."
+                                )
+                        );
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
         public ProductResponse getById(
                         Long id) {
 
+
                 return productMapper.toResponse(
-                                getProduct(id));
+                        getProduct(id)
+                );
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
         public Page<ProductResponse> getAll(
                         Pageable pageable) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
+
+                Tenant tenant =
+                        currentUserService.getCurrentTenant();
+
+
 
                 return productRepository
-                                .findByTenant(
-                                                tenant,
-                                                pageable)
-                                .map(productMapper::toResponse);
+                        .findByTenant(
+                                tenant,
+                                pageable
+                        )
+                        .map(productMapper::toResponse);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
@@ -96,38 +199,78 @@ public class ProductServiceImpl implements ProductService {
                         Long categoryId,
                         Pageable pageable) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
+
+                Tenant tenant =
+                        currentUserService.getCurrentTenant();
+
+
 
                 return productRepository
-                                .findByCategoryIdAndTenant(
-                                                categoryId,
-                                                tenant,
-                                                pageable)
-                                .map(productMapper::toResponse);
+                        .findByCategoryIdAndTenant(
+                                categoryId,
+                                tenant,
+                                pageable
+                        )
+                        .map(productMapper::toResponse);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
         public Page<ProductResponse> getAllGlobal(
                         Pageable pageable) {
 
+
                 return productRepository
-                                .findAll(pageable)
-                                .map(productMapper::toResponse);
+                        .findAll(pageable)
+                        .map(productMapper::toResponse);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
         public ProductResponse getByIdGlobal(
                         Long id) {
 
-                Product product = productRepository
+
+                Product product =
+                        productRepository
                                 .findById(id)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Product not found."));
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "Product not found."
+                                        )
+                                );
+
+
 
                 return productMapper.toResponse(product);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         @Transactional(readOnly = true)
@@ -135,48 +278,97 @@ public class ProductServiceImpl implements ProductService {
                         Long categoryId,
                         Pageable pageable) {
 
+
                 return productRepository
-                                .findByCategoryId(
-                                                categoryId,
-                                                pageable)
-                                .map(productMapper::toResponse);
+                        .findByCategoryId(
+                                categoryId,
+                                pageable
+                        )
+                        .map(productMapper::toResponse);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         public ProductResponse update(
                         Long id,
                         UpdateProductRequest request) {
 
-                Product product = getProduct(id);
+
+                Product product =
+                        getProduct(id);
+
+
 
                 productMapper.updateEntity(
-                                request,
-                                product);
+                        request,
+                        product
+                );
+
+
 
                 if (request.getCategoryId() != null) {
 
-                        Tenant tenant = currentUserService.getCurrentTenant();
 
-                        Category category = categoryRepository
+                        Tenant tenant =
+                                currentUserService.getCurrentTenant();
+
+
+
+                        Category category =
+                                categoryRepository
                                         .findByIdAndTenant(
-                                                        request.getCategoryId(),
-                                                        tenant)
-                                        .orElseThrow(() -> new ResourceNotFoundException(
-                                                        "Category not found."));
+                                                request.getCategoryId(),
+                                                tenant
+                                        )
+                                        .orElseThrow(() ->
+                                                new ResourceNotFoundException(
+                                                        "Category not found."
+                                                )
+                                        );
+
+
 
                         product.setCategory(category);
+
                 }
 
-                product = productRepository.save(product);
+
+
+
+                product =
+                        productRepository.save(product);
+
+
 
                 return productMapper.toResponse(product);
+
         }
+
+
+
+
+
+
+
+
 
         @Override
         public void delete(
                         Long id) {
 
+
                 productRepository.delete(
-                                getProduct(id));
+                        getProduct(id)
+                );
+
         }
 }
+
