@@ -1,9 +1,15 @@
+
 import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Logout from "./pages/Logout";
+
+import PlatformDashboard from "./pages/PlatformDashboard";
+import CreateTenant from "./pages/CreateTenant";
+import AssignTenantAdmin from "./pages/AssignTenantAdmin";
+
 
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
@@ -32,6 +38,7 @@ function App() {
 
             {/* PUBLIC ROUTES */}
 
+
             <Route
                 path="/"
                 element={<Home />}
@@ -43,13 +50,68 @@ function App() {
                 element={<Login />}
             />
 
+
             <Route
                 path="/logout"
                 element={<Logout />}
             />
 
 
-            {/* DASHBOARD */}
+
+
+
+            {/* ==============================
+                PLATFORM ADMIN ROUTES
+            ============================== */}
+
+
+            <Route
+                path="/platform"
+                element={
+                    <ProtectedRoute
+                        requiredRole="PLATFORM_ADMIN"
+                    >
+                        <PlatformDashboard />
+                    </ProtectedRoute>
+                }
+            />
+
+
+
+            <Route
+                path="/platform/tenants/create"
+                element={
+                    <ProtectedRoute
+                        requiredRole="PLATFORM_ADMIN"
+                    >
+                        <CreateTenant />
+                    </ProtectedRoute>
+                }
+            />
+
+
+
+            <Route
+                path="/platform/admins/assign"
+                element={
+                    <ProtectedRoute
+                        requiredRole="PLATFORM_ADMIN"
+                    >
+                        <AssignTenantAdmin />
+                    </ProtectedRoute>
+                }
+            />
+
+
+
+
+
+
+
+            {/* ==============================
+                TENANT DASHBOARD
+            ============================== */}
+
 
             <Route
                 path="/dashboard"
@@ -62,7 +124,14 @@ function App() {
 
 
 
-            {/* PRODUCT ROUTES */}
+
+
+
+
+            {/* ==============================
+                PRODUCT ROUTES
+            ============================== */}
+
 
             <Route
                 path="/products"
@@ -105,7 +174,14 @@ function App() {
 
 
 
-            {/* CATEGORY ROUTES */}
+
+
+
+
+            {/* ==============================
+                CATEGORY ROUTES
+            ============================== */}
+
 
             <Route
                 path="/categories"
@@ -138,7 +214,14 @@ function App() {
 
 
 
-            {/* FAVOURITES */}
+
+
+
+
+            {/* ==============================
+                FAVOURITES
+            ============================== */}
+
 
             <Route
                 path="/favourites"
@@ -151,7 +234,14 @@ function App() {
 
 
 
-            {/* ORDER ROUTES */}
+
+
+
+
+            {/* ==============================
+                ORDER ROUTES
+            ============================== */}
+
 
             <Route
                 path="/orders/create"
@@ -184,7 +274,14 @@ function App() {
 
 
 
-            {/* FALLBACK */}
+
+
+
+
+            {/* ==============================
+                FALLBACK
+            ============================== */}
+
 
             <Route
                 path="*"
@@ -200,3 +297,4 @@ function App() {
 
 
 export default App;
+

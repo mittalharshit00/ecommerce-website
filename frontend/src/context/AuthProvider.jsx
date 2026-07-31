@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 
@@ -58,6 +59,15 @@ function getUserRole(token) {
             decoded?.realm_access?.roles || [];
 
 
+
+        if (roles.includes("PLATFORM_ADMIN")) {
+
+            return "PLATFORM_ADMIN";
+
+        }
+
+
+
         if (roles.includes("ADMIN")) {
 
             return "ADMIN";
@@ -65,11 +75,13 @@ function getUserRole(token) {
         }
 
 
+
         if (roles.includes("USER")) {
 
             return "USER";
 
         }
+
 
 
         return null;
@@ -121,6 +133,10 @@ export function AuthProvider({ children }) {
 
     const isAdmin =
         role === "ADMIN";
+
+
+    const isPlatformAdmin =
+        role === "PLATFORM_ADMIN";
 
 
 
@@ -430,7 +446,10 @@ export function AuthProvider({ children }) {
                 tenant,
                 loading,
                 isAuthenticated,
+
                 isAdmin,
+                isPlatformAdmin,
+
                 login,
                 logout
             }}
@@ -444,3 +463,4 @@ export function AuthProvider({ children }) {
     );
 
 }
+
