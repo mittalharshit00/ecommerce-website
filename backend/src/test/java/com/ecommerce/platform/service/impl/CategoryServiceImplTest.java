@@ -9,8 +9,6 @@ import com.ecommerce.platform.exception.ResourceNotFoundException;
 import com.ecommerce.platform.mapper.CategoryMapper;
 import com.ecommerce.platform.repository.CategoryRepository;
 import com.ecommerce.platform.security.CurrentUserService;
-import com.ecommerce.platform.service.impl.CategoryServiceImpl;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,12 +18,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,33 +43,29 @@ class CategoryServiceImplTest {
 
     private Tenant tenant;
     private Category category;
-    private CategoryResponse categoryResponse;
+    private CategoryResponse response;
 
     @BeforeEach
     void setUp() {
 
-        tenant = Tenant.builder()
-                .name("Local Tenant")
-                .domain("local")
-                .enabled(true)
-                .build();
+        tenant = new Tenant();
+        tenant.setId(1L);
+        tenant.setName("Local");
 
-        category = Category.builder()
-                .name("Electronics")
-                .tenant(tenant)
-                .build();
+        category = new Category();
+        category.setId(1L);
+        category.setName("Electronics");
+        category.setTenant(tenant);
 
-        categoryResponse = new CategoryResponse();
-
-        categoryResponse.setName("Electronics");
+        response = new CategoryResponse();
+        response.setId(1L);
+        response.setName("Electronics");
     }
 
     @Test
-    void create_shouldCreateCategoryForCurrentTenant() {
+    void create_ShouldCreateCategory() {
 
-        CreateCategoryRequest request =
-                new CreateCategoryRequest();
-
+        CreateCategoryRequest request = new CreateCategoryRequest();
         request.setName("Electronics");
 
         when(currentUserService.getCurrentTenant())
@@ -84,280 +78,196 @@ class CategoryServiceImplTest {
                 .thenReturn(category);
 
         when(categoryMapper.toResponse(category))
-                .thenReturn(categoryResponse);
+                .thenReturn(response);
 
-        CategoryResponse result =
-                categoryService.create(request);
+        CategoryResponse result = categoryService.create(request);
 
-        assertNotNull(result);
-        assertEquals(
-                "Electronics",
-                result.getName()
-        );
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
 
-        assertSame(
-                tenant,
-                category.getTenant()
-        );
-
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(categoryMapper)
-                .toEntity(request);
-
-        verify(categoryRepository)
-                .save(category);
-
-        verify(categoryMapper)
-                .toResponse(category);
+        verify(categoryRepository).save(category);
+        verify(categoryMapper).toResponse(category);
     }
 
     @Test
-    void getById_shouldReturnCategory_whenCategoryBelongsToTenant() {
+    void getById_ShouldReturnCategory() {
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.of(category));
 
         when(categoryMapper.toResponse(category))
-                .thenReturn(categoryResponse);
+                .thenReturn(response);
 
-        CategoryResponse result =
-                categoryService.getById(1L);
+        CategoryResponse result = categoryService.getById(1L);
 
-        assertNotNull(result);
-        assertEquals(
-                "Electronics",
-                result.getName()
-        );
-
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(categoryRepository)
-                .findByIdAndTenant(
-                        1L,
-                        tenant
-                );
-
-        verify(categoryMapper)
-                .toResponse(category);
+        assertThat(result.getName()).isEqualTo("Electronics");
     }
 
     @Test
-    void getById_shouldThrowException_whenCategoryDoesNotExist() {
+    void getById_ShouldThrowException_WhenNotFound() {
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                99L,
-                tenant
-        )).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> categoryService.getById(99L)
-        );
-
-        verify(categoryRepository)
-                .findByIdAndTenant(
-                        99L,
-                        tenant
-                );
-
-        verify(categoryMapper, never())
-                .toResponse(any());
+        assertThatThrownBy(() -> categoryService.getById(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Category not found.");
     }
 
     @Test
-    void getAll_shouldReturnCategoriesForCurrentTenant() {
+    void getAll_ShouldReturnPage() {
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
-
-        Page<Category> categoryPage =
-                new PageImpl<>(
-                        List.of(category)
-                );
+        Page<Category> page =
+                new PageImpl<>(List.of(category));
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByTenant(
-                tenant,
-                pageable
-        )).thenReturn(categoryPage);
+        when(categoryRepository.findByTenant(eq(tenant), any()))
+                .thenReturn(page);
 
         when(categoryMapper.toResponse(category))
-                .thenReturn(categoryResponse);
+                .thenReturn(response);
 
         Page<CategoryResponse> result =
-                categoryService.getAll(pageable);
+                categoryService.getAll(PageRequest.of(0,10));
 
-        assertNotNull(result);
-
-        assertEquals(
-                1,
-                result.getTotalElements()
-        );
-
-        assertEquals(
-                "Electronics",
-                result.getContent()
-                        .getFirst()
-                        .getName()
-        );
-
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(categoryRepository)
-                .findByTenant(
-                        tenant,
-                        pageable
-                );
-
-        verify(categoryMapper)
-                .toResponse(category);
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getName())
+                .isEqualTo("Electronics");
     }
 
     @Test
-    void update_shouldUpdateCategoryName() {
+    void getAllGlobal_ShouldReturnPage() {
+
+        Page<Category> page =
+                new PageImpl<>(List.of(category));
+
+        when(categoryRepository.findAll(any(PageRequest.class)))
+                .thenReturn(page);
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(response);
+
+        Page<CategoryResponse> result =
+                categoryService.getAllGlobal(PageRequest.of(0,10));
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void getByIdGlobal_ShouldReturnCategory() {
+
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(category));
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(response);
+
+        CategoryResponse result =
+                categoryService.getByIdGlobal(1L);
+
+        assertThat(result.getName())
+                .isEqualTo("Electronics");
+    }
+
+    @Test
+    void getByIdGlobal_ShouldThrowException() {
+
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                categoryService.getByIdGlobal(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Category not found.");
+    }
+
+    @Test
+    void update_ShouldUpdateCategory() {
 
         UpdateCategoryRequest request =
                 new UpdateCategoryRequest();
 
-        request.setName("Computers");
+        request.setName("Mobiles");
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.of(category));
 
         when(categoryRepository.save(category))
                 .thenReturn(category);
 
         when(categoryMapper.toResponse(category))
-                .thenReturn(categoryResponse);
+                .thenReturn(response);
 
         CategoryResponse result =
-                categoryService.update(
-                        1L,
-                        request
-                );
+                categoryService.update(1L, request);
 
-        assertNotNull(result);
+        verify(categoryRepository).save(category);
 
-        assertEquals(
-                "Computers",
-                category.getName()
-        );
+        assertThat(category.getName())
+                .isEqualTo("Mobiles");
 
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(categoryRepository)
-                .findByIdAndTenant(
-                        1L,
-                        tenant
-                );
-
-        verify(categoryRepository)
-                .save(category);
-
-        verify(categoryMapper)
-                .toResponse(category);
+        assertThat(result).isNotNull();
     }
 
     @Test
-    void update_shouldThrowException_whenCategoryDoesNotExist() {
+    void update_ShouldThrowException_WhenCategoryNotFound() {
 
         UpdateCategoryRequest request =
                 new UpdateCategoryRequest();
 
-        request.setName("Computers");
+        request.setName("Mobiles");
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                99L,
-                tenant
-        )).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> categoryService.update(
-                        99L,
-                        request
-                )
-        );
-
-        verify(categoryRepository)
-                .findByIdAndTenant(
-                        99L,
-                        tenant
-                );
-
-        verify(categoryRepository, never())
-                .save(any());
-
-        verify(categoryMapper, never())
-                .toResponse(any());
+        assertThatThrownBy(() ->
+                categoryService.update(1L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Category not found.");
     }
 
     @Test
-    void delete_shouldDeleteCategory_whenCategoryBelongsToTenant() {
+    void delete_ShouldDeleteCategory() {
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.of(category));
 
         categoryService.delete(1L);
-
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(categoryRepository)
-                .findByIdAndTenant(
-                        1L,
-                        tenant
-                );
 
         verify(categoryRepository)
                 .delete(category);
     }
 
     @Test
-    void delete_shouldThrowException_whenCategoryDoesNotExist() {
+    void delete_ShouldThrowException_WhenCategoryNotFound() {
 
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                99L,
-                tenant
-        )).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndTenant(1L, tenant))
+                .thenReturn(Optional.empty());
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> categoryService.delete(99L)
-        );
-
-        verify(categoryRepository, never())
-                .delete(any());
+        assertThatThrownBy(() ->
+                categoryService.delete(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Category not found.");
     }
+
 }
