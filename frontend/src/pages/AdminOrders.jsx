@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../context/useAuth";
+
 import {
     getAdminOrders,
     updateOrderStatus
 } from "../services/orderService";
 
-const TENANT = "local";
-
 function AdminOrders() {
+
+    const { tenant } = useAuth();
 
     const [orders, setOrders] = useState([]);
 
@@ -21,8 +23,15 @@ function AdminOrders() {
     const [error, setError] = useState("");
 
     useEffect(() => {
+        if (!tenant) {
+            setOrders([]);
+            setTotalPages(0);
+            setLoading(false);
+            return;
+        }
+
         loadOrders();
-    }, [page]);
+    }, [page, tenant]);
 
     const loadOrders = async () => {
 
@@ -32,8 +41,14 @@ function AdminOrders() {
 
             setError("");
 
+            if (!tenant) {
+                setOrders([]);
+                setTotalPages(0);
+                return;
+            }
+
             const data = await getAdminOrders(
-                TENANT,
+                tenant,
                 page,
                 10
             );
@@ -61,8 +76,12 @@ function AdminOrders() {
 
         try {
 
+            if (!tenant) {
+                throw new Error("No tenant context available.");
+            }
+
             await updateOrderStatus(
-                TENANT,
+                tenant,
                 orderId,
                 status
             );
