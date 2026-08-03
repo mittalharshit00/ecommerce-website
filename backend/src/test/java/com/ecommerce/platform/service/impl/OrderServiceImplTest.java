@@ -44,749 +44,669 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
 
-    @Mock
-    private OrderRepository orderRepository;
+        @Mock
+        private OrderRepository orderRepository;
 
-    @Mock
-    private ProductRepository productRepository;
+        @Mock
+        private ProductRepository productRepository;
 
-    @Mock
-    private OrderMapper orderMapper;
+        @Mock
+        private OrderMapper orderMapper;
 
-    @Mock
-    private CurrentUserService currentUserService;
+        @Mock
+        private CurrentUserService currentUserService;
 
-    @InjectMocks
-    private OrderServiceImpl orderService;
+        @InjectMocks
+        private OrderServiceImpl orderService;
 
-    private User user;
-    private Tenant tenant;
-    private Product product;
-    private Order order;
-    private OrderResponse orderResponse;
+        private User user;
+        private Tenant tenant;
+        private Product product;
+        private Order order;
+        private OrderResponse orderResponse;
 
-    @BeforeEach
-    void setUp() {
+        @BeforeEach
+        void setUp() {
 
-        user = new User();
-        user.setId(1L);
-        user.setUsername("john");
+                user = new User();
+                user.setId(1L);
+                user.setUsername("john");
 
-        tenant = new Tenant();
-        tenant.setId(1L);
-        tenant.setName("Local");
+                tenant = new Tenant();
+                tenant.setId(1L);
+                tenant.setName("Local");
 
-        product = new Product();
-        product.setId(1L);
-        product.setName("Laptop");
-        product.setPrice(new BigDecimal("100.00"));
-        product.setQuantity(10);
+                product = new Product();
+                product.setId(1L);
+                product.setName("Laptop");
+                product.setPrice(new BigDecimal("100.00"));
+                product.setQuantity(10);
 
-        order = new Order();
-        order.setId(1L);
-        order.setUser(user);
-        order.setStatus(OrderStatus.PENDING);
-        order.setTotalQuantity(2);
-        order.setTotalAmount(new BigDecimal("200.00"));
+                order = new Order();
+                order.setId(1L);
+                order.setUser(user);
+                order.setStatus(OrderStatus.PENDING);
+                order.setTotalQuantity(2);
+                order.setTotalAmount(new BigDecimal("200.00"));
 
-        orderResponse = new OrderResponse();
-        orderResponse.setId(1L);
-    }
+                orderResponse = new OrderResponse();
+                orderResponse.setId(1L);
+        }
 
-    @Test
-    void getAllTenantOrders_ShouldFetchOrdersForTenantProducts() {
+        @Test
+        void getAllTenantOrders_ShouldFetchOrdersForTenantProducts() {
 
-        Pageable pageable = PageRequest.of(0, 10);
+                Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Order> orderPage = new PageImpl<>(
-                List.of(order),
-                pageable,
-                1
-        );
+                Page<Order> orderPage = new PageImpl<>(
+                                List.of(order),
+                                pageable,
+                                1);
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        when(orderRepository.findByOrderItems_Product_Tenant(
-                tenant,
-                pageable
-        ))
-                .thenReturn(orderPage);
+                when(orderRepository.findByOrderItems_Product_Tenant(
+                                tenant,
+                                pageable))
+                                .thenReturn(orderPage);
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        Page<OrderResponse> result =
-                orderService.getAllTenantOrders(pageable);
+                Page<OrderResponse> result = orderService.getAllTenantOrders(pageable);
 
-        assertThat(result.getContent())
-                .hasSize(1);
+                assertThat(result.getContent())
+                                .hasSize(1);
 
-        assertThat(result.getContent().get(0))
-                .isEqualTo(orderResponse);
+                assertThat(result.getContent().get(0))
+                                .isEqualTo(orderResponse);
 
-        verify(orderRepository)
-                .findByOrderItems_Product_Tenant(
-                        tenant,
-                        pageable
-                );
+                verify(orderRepository)
+                                .findByOrderItems_Product_Tenant(
+                                                tenant,
+                                                pageable);
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-    @Test
-    void create_ShouldCreateOrderSuccessfully() {
+        @Test
+        void create_ShouldCreateOrderSuccessfully() {
 
-        OrderItemRequest itemRequest =
-                new OrderItemRequest();
+                OrderItemRequest itemRequest = new OrderItemRequest();
 
-        itemRequest.setProductId(1L);
-        itemRequest.setQuantity(2);
+                itemRequest.setProductId(1L);
+                itemRequest.setQuantity(2);
 
-        CreateOrderRequest request =
-                new CreateOrderRequest();
+                CreateOrderRequest request = new CreateOrderRequest();
 
-        request.setItems(List.of(itemRequest));
+                request.setItems(List.of(itemRequest));
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        when(productRepository.findById(1L))
-                .thenReturn(Optional.of(product));
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(product));
 
-        when(orderRepository.save(any(Order.class)))
-                .thenReturn(order);
+                when(orderRepository.save(any(Order.class)))
+                                .thenReturn(order);
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        OrderResponse result =
+                OrderResponse result = orderService.create(request);
+
+                assertThat(result)
+                                .isNotNull();
+
+                assertThat(result.getId())
+                                .isEqualTo(1L);
+
+                assertThat(product.getQuantity())
+                                .isEqualTo(8);
+
+                verify(currentUserService)
+                                .getCurrentUser();
+
+                verify(productRepository)
+                                .findById(1L);
+
+                verify(orderRepository)
+                                .save(any(Order.class));
+
+                verify(orderMapper)
+                                .toResponse(order);
+        }
+
+        @Test
+        void create_ShouldSetCorrectOrderValues() {
+
+                OrderItemRequest itemRequest = new OrderItemRequest();
+
+                itemRequest.setProductId(1L);
+                itemRequest.setQuantity(3);
+
+                CreateOrderRequest request = new CreateOrderRequest();
+
+                request.setItems(List.of(itemRequest));
+
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
+
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(product));
+
+                when(orderRepository.save(any(Order.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
+
+                when(orderMapper.toResponse(any(Order.class)))
+                                .thenReturn(orderResponse);
+
                 orderService.create(request);
 
-        assertThat(result)
-                .isNotNull();
+                ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
 
-        assertThat(result.getId())
-                .isEqualTo(1L);
+                verify(orderRepository)
+                                .save(orderCaptor.capture());
 
-        assertThat(product.getQuantity())
-                .isEqualTo(8);
+                Order savedOrder = orderCaptor.getValue();
 
-        verify(currentUserService)
-                .getCurrentUser();
+                assertThat(savedOrder.getUser())
+                                .isEqualTo(user);
 
-        verify(productRepository)
-                .findById(1L);
+                assertThat(savedOrder.getStatus())
+                                .isEqualTo(OrderStatus.PENDING);
 
-        verify(orderRepository)
-                .save(any(Order.class));
+                assertThat(savedOrder.getTotalQuantity())
+                                .isEqualTo(3);
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                assertThat(savedOrder.getTotalAmount())
+                                .isEqualByComparingTo(
+                                                new BigDecimal("300.00"));
 
-    @Test
-    void create_ShouldSetCorrectOrderValues() {
+                assertThat(savedOrder.getOrderItems())
+                                .hasSize(1);
 
-        OrderItemRequest itemRequest =
-                new OrderItemRequest();
+                OrderItem savedItem = savedOrder.getOrderItems().get(0);
 
-        itemRequest.setProductId(1L);
-        itemRequest.setQuantity(3);
+                assertThat(savedItem.getOrder())
+                                .isEqualTo(savedOrder);
 
-        CreateOrderRequest request =
-                new CreateOrderRequest();
+                assertThat(savedItem.getProduct())
+                                .isEqualTo(product);
 
-        request.setItems(List.of(itemRequest));
+                assertThat(savedItem.getQuantity())
+                                .isEqualTo(3);
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                assertThat(savedItem.getPrice())
+                                .isEqualByComparingTo(
+                                                new BigDecimal("100.00"));
+        }
 
-        when(productRepository.findById(1L))
-                .thenReturn(Optional.of(product));
+        @Test
+        void create_ShouldCalculateTotalForMultipleItems() {
 
-        when(orderRepository.save(any(Order.class)))
-                .thenAnswer(invocation ->
-                        invocation.getArgument(0));
+                Product secondProduct = new Product();
 
-        when(orderMapper.toResponse(any(Order.class)))
-                .thenReturn(orderResponse);
+                secondProduct.setId(2L);
+                secondProduct.setName("Mouse");
+                secondProduct.setPrice(
+                                new BigDecimal("50.00"));
+                secondProduct.setQuantity(20);
 
-        orderService.create(request);
+                OrderItemRequest firstItem = new OrderItemRequest();
 
-        ArgumentCaptor<Order> orderCaptor =
-                ArgumentCaptor.forClass(Order.class);
+                firstItem.setProductId(1L);
+                firstItem.setQuantity(2);
 
-        verify(orderRepository)
-                .save(orderCaptor.capture());
+                OrderItemRequest secondItem = new OrderItemRequest();
 
-        Order savedOrder =
-                orderCaptor.getValue();
+                secondItem.setProductId(2L);
+                secondItem.setQuantity(3);
 
-        assertThat(savedOrder.getUser())
-                .isEqualTo(user);
+                CreateOrderRequest request = new CreateOrderRequest();
 
-        assertThat(savedOrder.getStatus())
-                .isEqualTo(OrderStatus.PENDING);
+                request.setItems(
+                                List.of(firstItem, secondItem));
 
-        assertThat(savedOrder.getTotalQuantity())
-                .isEqualTo(3);
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        assertThat(savedOrder.getTotalAmount())
-                .isEqualByComparingTo(
-                        new BigDecimal("300.00")
-                );
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(product));
 
-        assertThat(savedOrder.getOrderItems())
-                .hasSize(1);
+                when(productRepository.findById(2L))
+                                .thenReturn(Optional.of(secondProduct));
 
-        OrderItem savedItem =
-                savedOrder.getOrderItems().get(0);
+                when(orderRepository.save(any(Order.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThat(savedItem.getOrder())
-                .isEqualTo(savedOrder);
+                when(orderMapper.toResponse(any(Order.class)))
+                                .thenReturn(orderResponse);
 
-        assertThat(savedItem.getProduct())
-                .isEqualTo(product);
+                orderService.create(request);
 
-        assertThat(savedItem.getQuantity())
-                .isEqualTo(3);
+                ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
 
-        assertThat(savedItem.getPrice())
-                .isEqualByComparingTo(
-                        new BigDecimal("100.00")
-                );
-    }
+                verify(orderRepository)
+                                .save(orderCaptor.capture());
 
-    @Test
-    void create_ShouldCalculateTotalForMultipleItems() {
+                Order savedOrder = orderCaptor.getValue();
 
-        Product secondProduct =
-                new Product();
+                assertThat(savedOrder.getTotalQuantity())
+                                .isEqualTo(5);
 
-        secondProduct.setId(2L);
-        secondProduct.setName("Mouse");
-        secondProduct.setPrice(
-                new BigDecimal("50.00")
-        );
-        secondProduct.setQuantity(20);
+                assertThat(savedOrder.getTotalAmount())
+                                .isEqualByComparingTo(
+                                                new BigDecimal("350.00"));
 
-        OrderItemRequest firstItem =
-                new OrderItemRequest();
+                assertThat(product.getQuantity())
+                                .isEqualTo(8);
 
-        firstItem.setProductId(1L);
-        firstItem.setQuantity(2);
+                assertThat(secondProduct.getQuantity())
+                                .isEqualTo(17);
 
-        OrderItemRequest secondItem =
-                new OrderItemRequest();
+                assertThat(savedOrder.getOrderItems())
+                                .hasSize(2);
+        }
 
-        secondItem.setProductId(2L);
-        secondItem.setQuantity(3);
+        @Test
+        void create_ShouldThrowResourceNotFoundException_WhenProductDoesNotExist() {
 
-        CreateOrderRequest request =
-                new CreateOrderRequest();
+                OrderItemRequest itemRequest = new OrderItemRequest();
 
-        request.setItems(
-                List.of(firstItem, secondItem)
-        );
+                itemRequest.setProductId(999L);
+                itemRequest.setQuantity(1);
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                CreateOrderRequest request = new CreateOrderRequest();
 
-        when(productRepository.findById(1L))
-                .thenReturn(Optional.of(product));
+                request.setItems(
+                                List.of(itemRequest));
 
-        when(productRepository.findById(2L))
-                .thenReturn(Optional.of(secondProduct));
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        when(orderRepository.save(any(Order.class)))
-                .thenAnswer(invocation ->
-                        invocation.getArgument(0));
+                when(productRepository.findById(999L))
+                                .thenReturn(Optional.empty());
 
-        when(orderMapper.toResponse(any(Order.class)))
-                .thenReturn(orderResponse);
+                assertThatThrownBy(() -> orderService.create(request))
+                                .isInstanceOf(
+                                                ResourceNotFoundException.class)
+                                .hasMessage("Product not found.");
 
-        orderService.create(request);
+                verify(productRepository)
+                                .findById(999L);
 
-        ArgumentCaptor<Order> orderCaptor =
-                ArgumentCaptor.forClass(Order.class);
+                verify(orderRepository, never())
+                                .save(any(Order.class));
 
-        verify(orderRepository)
-                .save(orderCaptor.capture());
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        Order savedOrder =
-                orderCaptor.getValue();
+        @Test
+        void create_ShouldThrowBadRequestException_WhenStockIsInsufficient() {
 
-        assertThat(savedOrder.getTotalQuantity())
-                .isEqualTo(5);
+                OrderItemRequest itemRequest = new OrderItemRequest();
 
-        assertThat(savedOrder.getTotalAmount())
-                .isEqualByComparingTo(
-                        new BigDecimal("350.00")
-                );
+                itemRequest.setProductId(1L);
+                itemRequest.setQuantity(20);
 
-        assertThat(product.getQuantity())
-                .isEqualTo(8);
+                CreateOrderRequest request = new CreateOrderRequest();
 
-        assertThat(secondProduct.getQuantity())
-                .isEqualTo(17);
+                request.setItems(
+                                List.of(itemRequest));
 
-        assertThat(savedOrder.getOrderItems())
-                .hasSize(2);
-    }
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-    @Test
-    void create_ShouldThrowResourceNotFoundException_WhenProductDoesNotExist() {
+                when(productRepository.findById(1L))
+                                .thenReturn(Optional.of(product));
 
-        OrderItemRequest itemRequest =
-                new OrderItemRequest();
+                assertThatThrownBy(() -> orderService.create(request))
+                                .isInstanceOf(
+                                                BadRequestException.class)
+                                .hasMessage(
+                                                "Insufficient stock for product: Laptop");
 
-        itemRequest.setProductId(999L);
-        itemRequest.setQuantity(1);
+                assertThat(product.getQuantity())
+                                .isEqualTo(10);
 
-        CreateOrderRequest request =
-                new CreateOrderRequest();
+                verify(orderRepository, never())
+                                .save(any(Order.class));
 
-        request.setItems(
-                List.of(itemRequest)
-        );
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+        @Test
+        void getById_ShouldReturnOrderSuccessfully() {
 
-        when(productRepository.findById(999L))
-                .thenReturn(Optional.empty());
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        assertThatThrownBy(() ->
-                orderService.create(request))
-                .isInstanceOf(
-                        ResourceNotFoundException.class
-                )
-                .hasMessage("Product not found.");
+                when(orderRepository.findByIdAndUser(
+                                1L,
+                                user)).thenReturn(Optional.of(order));
 
-        verify(productRepository)
-                .findById(999L);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        verify(orderRepository, never())
-                .save(any(Order.class));
+                OrderResponse result = orderService.getById(1L);
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                assertThat(result)
+                                .isNotNull();
 
-    @Test
-    void create_ShouldThrowBadRequestException_WhenStockIsInsufficient() {
+                assertThat(result.getId())
+                                .isEqualTo(1L);
 
-        OrderItemRequest itemRequest =
-                new OrderItemRequest();
+                verify(currentUserService)
+                                .getCurrentUser();
 
-        itemRequest.setProductId(1L);
-        itemRequest.setQuantity(20);
+                verify(orderRepository)
+                                .findByIdAndUser(1L, user);
 
-        CreateOrderRequest request =
-                new CreateOrderRequest();
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-        request.setItems(
-                List.of(itemRequest)
-        );
+        @Test
+        void getById_ShouldThrowResourceNotFoundException_WhenOrderDoesNotExist() {
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        when(productRepository.findById(1L))
-                .thenReturn(Optional.of(product));
+                when(orderRepository.findByIdAndUser(
+                                1L,
+                                user)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                orderService.create(request))
-                .isInstanceOf(
-                        BadRequestException.class
-                )
-                .hasMessage(
-                        "Insufficient stock for product: Laptop"
-                );
+                assertThatThrownBy(() -> orderService.getById(1L))
+                                .isInstanceOf(
+                                                ResourceNotFoundException.class)
+                                .hasMessage("Order not found.");
 
-        assertThat(product.getQuantity())
-                .isEqualTo(10);
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        verify(orderRepository, never())
-                .save(any(Order.class));
+        @Test
+        void getMyOrders_ShouldReturnUserOrders() {
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                Pageable pageable = PageRequest.of(0, 10);
 
-    @Test
-    void getById_ShouldReturnOrderSuccessfully() {
+                Page<Order> orderPage = new PageImpl<>(
+                                List.of(order),
+                                pageable,
+                                1);
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-        when(orderRepository.findByIdAndUser(
-                1L,
-                user
-        )).thenReturn(Optional.of(order));
+                when(orderRepository.findByUser(
+                                eq(user),
+                                eq(pageable))).thenReturn(orderPage);
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        OrderResponse result =
-                orderService.getById(1L);
+                Page<OrderResponse> result = orderService.getMyOrders(pageable);
 
-        assertThat(result)
-                .isNotNull();
+                assertThat(result)
+                                .isNotNull();
 
-        assertThat(result.getId())
-                .isEqualTo(1L);
+                assertThat(result.getTotalElements())
+                                .isEqualTo(1);
 
-        verify(currentUserService)
-                .getCurrentUser();
+                assertThat(result.getContent())
+                                .hasSize(1);
 
-        verify(orderRepository)
-                .findByIdAndUser(1L, user);
+                assertThat(result.getContent().get(0))
+                                .isEqualTo(orderResponse);
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                verify(orderRepository)
+                                .findByUser(user, pageable);
 
-    @Test
-    void getById_ShouldThrowResourceNotFoundException_WhenOrderDoesNotExist() {
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+        @Test
+        void getMyOrders_ShouldReturnEmptyPage_WhenUserHasNoOrders() {
 
-        when(orderRepository.findByIdAndUser(
-                1L,
-                user
-        )).thenReturn(Optional.empty());
+                Pageable pageable = PageRequest.of(0, 10);
 
-        assertThatThrownBy(() ->
-                orderService.getById(1L))
-                .isInstanceOf(
-                        ResourceNotFoundException.class
-                )
-                .hasMessage("Order not found.");
+                Page<Order> emptyPage = Page.empty(pageable);
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                when(currentUserService.getCurrentUser())
+                                .thenReturn(user);
 
-    @Test
-    void getMyOrders_ShouldReturnUserOrders() {
+                when(orderRepository.findByUser(
+                                eq(user),
+                                eq(pageable))).thenReturn(emptyPage);
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+                Page<OrderResponse> result = orderService.getMyOrders(pageable);
 
-        Page<Order> orderPage =
-                new PageImpl<>(
-                        List.of(order),
-                        pageable,
-                        1
-                );
+                assertThat(result)
+                                .isNotNull();
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                assertThat(result.getTotalElements())
+                                .isZero();
 
-        when(orderRepository.findByUser(
-                eq(user),
-                eq(pageable)
-        )).thenReturn(orderPage);
+                assertThat(result.getContent())
+                                .isEmpty();
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        Page<OrderResponse> result =
-                orderService.getMyOrders(pageable);
+        @Test
+        void getAllTenantOrders_ShouldReturnTenantOrders() {
 
-        assertThat(result)
-                .isNotNull();
+                Pageable pageable = PageRequest.of(0, 10);
 
-        assertThat(result.getTotalElements())
-                .isEqualTo(1);
+                Page<Order> orderPage = new PageImpl<>(
+                                List.of(order),
+                                pageable,
+                                1);
 
-        assertThat(result.getContent())
-                .hasSize(1);
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        assertThat(result.getContent().get(0))
-                .isEqualTo(orderResponse);
+                when(orderRepository.findByOrderItems_Product_Tenant(
+                                eq(tenant),
+                                eq(pageable))).thenReturn(orderPage);
 
-        verify(orderRepository)
-                .findByUser(user, pageable);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                Page<OrderResponse> result = orderService.getAllTenantOrders(
+                                pageable);
 
-    @Test
-    void getMyOrders_ShouldReturnEmptyPage_WhenUserHasNoOrders() {
+                assertThat(result)
+                                .isNotNull();
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+                assertThat(result.getTotalElements())
+                                .isEqualTo(1);
 
-        Page<Order> emptyPage =
-                Page.empty(pageable);
+                assertThat(result.getContent())
+                                .hasSize(1);
 
-        when(currentUserService.getCurrentUser())
-                .thenReturn(user);
+                assertThat(result.getContent().get(0))
+                                .isEqualTo(orderResponse);
 
-        when(orderRepository.findByUser(
-                eq(user),
-                eq(pageable)
-        )).thenReturn(emptyPage);
+                verify(currentUserService)
+                                .getCurrentTenant();
 
-        Page<OrderResponse> result =
-                orderService.getMyOrders(pageable);
+                verify(orderRepository)
+                                .findByOrderItems_Product_Tenant(
+                                                tenant,
+                                                pageable);
 
-        assertThat(result)
-                .isNotNull();
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-        assertThat(result.getTotalElements())
-                .isZero();
+        @Test
+        void getAllTenantOrders_ShouldReturnEmptyPage_WhenTenantHasNoOrders() {
 
-        assertThat(result.getContent())
-                .isEmpty();
+                Pageable pageable = PageRequest.of(0, 10);
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                Page<Order> emptyPage = Page.empty(pageable);
 
-    @Test
-    void getAllTenantOrders_ShouldReturnTenantOrders() {
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+                when(orderRepository.findByOrderItems_Product_Tenant(
+                                eq(tenant),
+                                eq(pageable))).thenReturn(emptyPage);
 
-        Page<Order> orderPage =
-                new PageImpl<>(
-                        List.of(order),
-                        pageable,
-                        1
-                );
+                Page<OrderResponse> result = orderService.getAllTenantOrders(
+                                pageable);
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
+                assertThat(result)
+                                .isNotNull();
 
-        when(orderRepository.findByOrderItems_Product_Tenant(
-                eq(tenant),
-                eq(pageable)
-        )).thenReturn(orderPage);
+                assertThat(result.getTotalElements())
+                                .isZero();
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                assertThat(result.getContent())
+                                .isEmpty();
 
-        Page<OrderResponse> result =
-                orderService.getAllTenantOrders(
-                        pageable
-                );
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        assertThat(result)
-                .isNotNull();
+        @Test
+        void getAdminOrderById_ShouldReturnTenantOrderSuccessfully() {
 
-        assertThat(result.getTotalElements())
-                .isEqualTo(1);
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        assertThat(result.getContent())
-                .hasSize(1);
+                when(orderRepository.findByIdAndOrderItems_Product_Tenant(
+                                1L,
+                                tenant)).thenReturn(Optional.of(order));
 
-        assertThat(result.getContent().get(0))
-                .isEqualTo(orderResponse);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        verify(currentUserService)
-                .getCurrentTenant();
+                OrderResponse result = orderService.getAdminOrderById(1L);
 
-        verify(orderRepository)
-                .findByOrderItems_Product_Tenant(
-                        tenant,
-                        pageable
-                );
+                assertThat(result)
+                                .isNotNull();
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                assertThat(result.getId())
+                                .isEqualTo(1L);
 
-    @Test
-    void getAllTenantOrders_ShouldReturnEmptyPage_WhenTenantHasNoOrders() {
+                verify(currentUserService)
+                                .getCurrentTenant();
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+                verify(orderRepository)
+                                .findByIdAndOrderItems_Product_Tenant(
+                                                1L,
+                                                tenant);
 
-        Page<Order> emptyPage =
-                Page.empty(pageable);
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
+        @Test
+        void getAdminOrderById_ShouldThrowResourceNotFoundException_WhenOrderNotInTenant() {
 
-        when(orderRepository.findByOrderItems_Product_Tenant(
-                eq(tenant),
-                eq(pageable)
-        )).thenReturn(emptyPage);
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        Page<OrderResponse> result =
-                orderService.getAllTenantOrders(
-                        pageable
-                );
+                when(orderRepository.findByIdAndOrderItems_Product_Tenant(
+                                1L,
+                                tenant)).thenReturn(Optional.empty());
 
-        assertThat(result)
-                .isNotNull();
+                assertThatThrownBy(() -> orderService.getAdminOrderById(1L))
+                                .isInstanceOf(
+                                                ResourceNotFoundException.class)
+                                .hasMessage("Order not found.");
 
-        assertThat(result.getTotalElements())
-                .isZero();
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 
-        assertThat(result.getContent())
-                .isEmpty();
+        @Test
+        void updateStatus_ShouldUpdateOrderStatusSuccessfully() {
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                /*
+                 * We don't assume a specific status such as SHIPPED,
+                 * because the actual OrderStatus enum in the project
+                 * may contain different values.
+                 *
+                 * We select any status that is different from PENDING.
+                 */
+                OrderStatus newStatus = Arrays.stream(OrderStatus.values())
+                                .filter(status -> status != OrderStatus.PENDING)
+                                .findFirst()
+                                .orElse(OrderStatus.PENDING);
 
-    @Test
-    void getAdminOrderById_ShouldReturnTenantOrderSuccessfully() {
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
+                when(orderRepository.findByIdAndOrderItems_Product_Tenant(
+                                1L,
+                                tenant)).thenReturn(Optional.of(order));
 
-        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(order));
+                when(orderRepository.save(order))
+                                .thenReturn(order);
 
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
+                when(orderMapper.toResponse(order))
+                                .thenReturn(orderResponse);
 
-        OrderResponse result =
-                orderService.getAdminOrderById(1L);
+                OrderResponse result = orderService.updateStatus(
+                                1L,
+                                newStatus);
 
-        assertThat(result)
-                .isNotNull();
+                assertThat(result)
+                                .isNotNull();
 
-        assertThat(result.getId())
-                .isEqualTo(1L);
+                assertThat(order.getStatus())
+                                .isEqualTo(newStatus);
 
-        verify(currentUserService)
-                .getCurrentTenant();
+                verify(currentUserService)
+                                .getCurrentTenant();
 
-        verify(orderRepository)
-                .findByIdAndOrderItems_Product_Tenant(
-                        1L,
-                        tenant
-                );
+                verify(orderRepository)
+                                .findByIdAndOrderItems_Product_Tenant(
+                                                1L,
+                                                tenant);
 
-        verify(orderMapper)
-                .toResponse(order);
-    }
+                verify(orderRepository)
+                                .save(order);
 
-    @Test
-    void getAdminOrderById_ShouldThrowResourceNotFoundException_WhenOrderNotInTenant() {
+                verify(orderMapper)
+                                .toResponse(order);
+        }
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
+        @Test
+        void updateStatus_ShouldThrowResourceNotFoundException_WhenOrderNotFound() {
 
-        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.empty());
+                OrderStatus newStatus = Arrays.stream(OrderStatus.values())
+                                .findFirst()
+                                .orElse(OrderStatus.PENDING);
 
-        assertThatThrownBy(() ->
-                orderService.getAdminOrderById(1L))
-                .isInstanceOf(
-                        ResourceNotFoundException.class
-                )
-                .hasMessage("Order not found.");
+                when(currentUserService.getCurrentTenant())
+                                .thenReturn(tenant);
 
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                when(orderRepository.findByIdAndOrderItems_Product_Tenant(
+                                1L,
+                                tenant)).thenReturn(Optional.empty());
 
-    @Test
-    void updateStatus_ShouldUpdateOrderStatusSuccessfully() {
+                assertThatThrownBy(() -> orderService.updateStatus(
+                                1L,
+                                newStatus))
+                                .isInstanceOf(
+                                                ResourceNotFoundException.class)
+                                .hasMessage("Order not found.");
 
-        /*
-         * We don't assume a specific status such as SHIPPED,
-         * because the actual OrderStatus enum in the project
-         * may contain different values.
-         *
-         * We select any status that is different from PENDING.
-         */
-        OrderStatus newStatus =
-                Arrays.stream(OrderStatus.values())
-                        .filter(status ->
-                                status != OrderStatus.PENDING)
-                        .findFirst()
-                        .orElse(OrderStatus.PENDING);
+                verify(orderRepository, never())
+                                .save(any(Order.class));
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(order));
-
-        when(orderRepository.save(order))
-                .thenReturn(order);
-
-        when(orderMapper.toResponse(order))
-                .thenReturn(orderResponse);
-
-        OrderResponse result =
-                orderService.updateStatus(
-                        1L,
-                        newStatus
-                );
-
-        assertThat(result)
-                .isNotNull();
-
-        assertThat(order.getStatus())
-                .isEqualTo(newStatus);
-
-        verify(currentUserService)
-                .getCurrentTenant();
-
-        verify(orderRepository)
-                .findByIdAndOrderItems_Product_Tenant(
-                        1L,
-                        tenant
-                );
-
-        verify(orderRepository)
-                .save(order);
-
-        verify(orderMapper)
-                .toResponse(order);
-    }
-
-    @Test
-    void updateStatus_ShouldThrowResourceNotFoundException_WhenOrderNotFound() {
-
-        OrderStatus newStatus =
-                Arrays.stream(OrderStatus.values())
-                        .findFirst()
-                        .orElse(OrderStatus.PENDING);
-
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                orderService.updateStatus(
-                        1L,
-                        newStatus
-                ))
-                .isInstanceOf(
-                        ResourceNotFoundException.class
-                )
-                .hasMessage("Order not found.");
-
-        verify(orderRepository, never())
-                .save(any(Order.class));
-
-        verify(orderMapper, never())
-                .toResponse(any(Order.class));
-    }
+                verify(orderMapper, never())
+                                .toResponse(any(Order.class));
+        }
 }
-

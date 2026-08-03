@@ -10,32 +10,28 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface OrderRepository
-        extends JpaRepository<Order, Long> {
+                extends JpaRepository<Order, Long> {
 
-    /**
-     * User APIs
-     */
-    Optional<Order> findByIdAndUser(
-            Long id,
-            User user
-    );
+        /**
+         * User APIs
+         */
+        Optional<Order> findByIdAndUser(
+                        Long id,
+                        User user);
 
-    Page<Order> findByUser(
-            User user,
-            Pageable pageable
-    );
+        Page<Order> findByUser(
+                        User user,
+                        Pageable pageable);
 
-    /**
-     * Tenant Admin APIs
-     */
-    Optional<Order> findByIdAndOrderItems_Product_Tenant(
-            Long id,
-            Tenant tenant
-    );
+        /**
+         * Tenant Admin APIs
+         */
+        Optional<Order> findByIdAndOrderItems_Product_Tenant(
+                        Long id,
+                        Tenant tenant);
 
-    Page<Order> findByOrderItems_Product_Tenant(
-            Tenant tenant,
-            Pageable pageable
-    );
+        Page<Order> findByOrderItems_Product_Tenant(
+                        Tenant tenant,
+                        Pageable pageable);
 
 }
