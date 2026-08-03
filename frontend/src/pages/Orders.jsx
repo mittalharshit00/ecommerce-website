@@ -5,7 +5,8 @@ import { useAuth } from "../context/useAuth";
 
 import {
     getOrders,
-    getAdminOrders
+    getAdminOrders,
+    updateOrderStatus
 } from "../services/orderService";
 
 function Orders() {
@@ -75,6 +76,16 @@ function Orders() {
                 return "bg-danger";
             default:
                 return "bg-secondary";
+        }
+    };
+
+    const handleStatusUpdate = async (orderId, status) => {
+        try {
+            const updated = await updateOrderStatus(tenant, orderId, status);
+            setOrders(prev => prev.map(order => order.id === updated.id ? updated : order));
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || "Unable to update status.");
         }
     };
 
@@ -168,13 +179,42 @@ function Orders() {
                                                     <div className="text-muted small">{order.user.fullName}</div>
                                                 )}
                                             </td>
-                                            <td><span className={`badge ${statusClass(order.status)}`}>{order.status}</span></td>
+                                            <td>
+                                                {isAdmin ? (
+                                                    <div className="d-flex flex-column gap-2">
+                                                        <span className={`badge ${statusClass(order.status)}`}>{order.status}</span>
+                                                        <select
+                                                            className="form-select form-select-sm"
+                                                            value={order.status}
+                                                            onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                                                        >
+                                                            <option value="PENDING">PENDING</option>
+                                                            <option value="CONFIRMED">CONFIRMED</option>
+                                                            <option value="DELIVERED">DELIVERED</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </select>
+                                                    </div>
+                                                ) : (
+                                                    <span className={`badge ${statusClass(order.status)}`}>{order.status}</span>
+                                                )}
+                                            </td>
                                             <td>{order.totalQuantity}</td>
                                             <td>${order.totalAmount}</td>
                                             <td>
-                                                <Link to={`/orders/${order.id}`} className="btn btn-outline-primary btn-sm">
-                                                    View Details
-                                                </Link>
+                                                <div className="d-flex flex-wrap gap-2">
+                                                    <Link to={`/orders/${order.id}`} className="btn btn-outline-primary btn-sm">
+                                                        View Details
+                                                    </Link>
+                                                    {order.items?.map((item) => (
+                                                        <Link
+                                                            key={`${order.id}-${item.productId}`}
+                                                            to={`/products/${item.productId}`}
+                                                            className="btn btn-outline-secondary btn-sm"
+                                                        >
+                                                            View Product Details
+                                                        </Link>
+                                                    ))}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

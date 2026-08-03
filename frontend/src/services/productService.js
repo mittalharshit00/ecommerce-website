@@ -24,6 +24,25 @@ export const getProducts = async (
     return response.data;
 };
 
+export const getTenantProducts = async (
+    tenant,
+    page = 0,
+    size = 10
+) => {
+
+    const response = await apiClient.get(
+        `/${tenant}/products`,
+        {
+            params: {
+                page,
+                size
+            }
+        }
+    );
+
+    return response.data;
+};
+
 
 
 
@@ -53,6 +72,27 @@ export const getProductsByCategory = async (
 
     const response = await api.get(
         `${PRODUCT_URL}/category/${categoryId}`,
+        {
+            params: {
+                page,
+                size
+            }
+        }
+    );
+
+    return response.data;
+
+};
+
+export const getTenantProductsByCategory = async (
+    tenant,
+    categoryId,
+    page = 0,
+    size = 10
+) => {
+
+    const response = await apiClient.get(
+        `/${tenant}/products/category/${categoryId}`,
         {
             params: {
                 page,

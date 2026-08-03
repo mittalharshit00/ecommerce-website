@@ -121,10 +121,8 @@ class ProductServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(category));
 
         when(fileStorageService.storeProductImage(image))
                 .thenReturn(
@@ -160,10 +158,7 @@ class ProductServiceImplTest {
                 .getCurrentTenant();
 
         verify(categoryRepository)
-                .findByIdAndTenant(
-                        1L,
-                        tenant
-                );
+                .findById(1L);
 
         verify(fileStorageService)
                 .storeProductImage(image);
@@ -191,10 +186,8 @@ class ProductServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                1L,
-                tenant
-        )).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(category));
 
         when(fileStorageService.storeProductImage(image))
                 .thenReturn(
@@ -254,10 +247,8 @@ class ProductServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(categoryRepository.findByIdAndTenant(
-                999L,
-                tenant
-        )).thenReturn(Optional.empty());
+        when(categoryRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         // Act & Assert
 
@@ -473,12 +464,8 @@ class ProductServiceImplTest {
                         1
                 );
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(productRepository.findByCategoryIdAndTenant(
+        when(productRepository.findByCategoryId(
                 1L,
-                tenant,
                 pageable
         )).thenReturn(productPage);
 
@@ -504,13 +491,9 @@ class ProductServiceImplTest {
         assertThat(result.getContent())
                 .hasSize(1);
 
-        verify(currentUserService)
-                .getCurrentTenant();
-
         verify(productRepository)
-                .findByCategoryIdAndTenant(
+                .findByCategoryId(
                         1L,
-                        tenant,
                         pageable
                 );
 
@@ -529,12 +512,8 @@ class ProductServiceImplTest {
         Page<Product> emptyPage =
                 Page.empty(pageable);
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(productRepository.findByCategoryIdAndTenant(
+        when(productRepository.findByCategoryId(
                 1L,
-                tenant,
                 pageable
         )).thenReturn(emptyPage);
 
@@ -808,10 +787,7 @@ class ProductServiceImplTest {
                 .toResponse(product);
 
         verify(categoryRepository, never())
-                .findByIdAndTenant(
-                        any(),
-                        any()
-                );
+                .findById(any());
     }
 
     @Test
@@ -832,10 +808,8 @@ class ProductServiceImplTest {
                 tenant
         )).thenReturn(Optional.of(product));
 
-        when(categoryRepository.findByIdAndTenant(
-                2L,
-                tenant
-        )).thenReturn(Optional.of(secondCategory));
+        when(categoryRepository.findById(2L))
+                .thenReturn(Optional.of(secondCategory));
 
         when(productRepository.save(product))
                 .thenReturn(product);
@@ -866,10 +840,7 @@ class ProductServiceImplTest {
                 );
 
         verify(categoryRepository)
-                .findByIdAndTenant(
-                        2L,
-                        tenant
-                );
+                .findById(2L);
 
         verify(productRepository)
                 .save(product);
@@ -936,10 +907,8 @@ class ProductServiceImplTest {
                 tenant
         )).thenReturn(Optional.of(product));
 
-        when(categoryRepository.findByIdAndTenant(
-                999L,
-                tenant
-        )).thenReturn(Optional.empty());
+        when(categoryRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         // Act & Assert
 
@@ -960,10 +929,7 @@ class ProductServiceImplTest {
                 );
 
         verify(categoryRepository)
-                .findByIdAndTenant(
-                        999L,
-                        tenant
-                );
+                .findById(999L);
 
         verify(productRepository, never())
                 .save(any(Product.class));

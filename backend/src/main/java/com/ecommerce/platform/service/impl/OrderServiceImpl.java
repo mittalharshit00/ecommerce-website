@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
                 Tenant tenant = currentUserService.getCurrentTenant();
 
                 return orderRepository
-                                .findByIdAndUser_Tenant(id, tenant)
+                                .findByIdAndOrderItems_Product_Tenant(id, tenant)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Order not found."));
         }
@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
                 Tenant tenant = currentUserService.getCurrentTenant();
 
                 return orderRepository
-                                .findByUser_Tenant(
+                                .findByOrderItems_Product_Tenant(
                                                 tenant,
                                                 pageable)
                                 .map(orderMapper::toResponse);

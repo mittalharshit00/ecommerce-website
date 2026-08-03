@@ -94,6 +94,48 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void getAllTenantOrders_ShouldFetchOrdersForTenantProducts() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Order> orderPage = new PageImpl<>(
+                List.of(order),
+                pageable,
+                1
+        );
+
+        when(currentUserService.getCurrentTenant())
+                .thenReturn(tenant);
+
+        when(orderRepository.findByOrderItems_Product_Tenant(
+                tenant,
+                pageable
+        ))
+                .thenReturn(orderPage);
+
+        when(orderMapper.toResponse(order))
+                .thenReturn(orderResponse);
+
+        Page<OrderResponse> result =
+                orderService.getAllTenantOrders(pageable);
+
+        assertThat(result.getContent())
+                .hasSize(1);
+
+        assertThat(result.getContent().get(0))
+                .isEqualTo(orderResponse);
+
+        verify(orderRepository)
+                .findByOrderItems_Product_Tenant(
+                        tenant,
+                        pageable
+                );
+
+        verify(orderMapper)
+                .toResponse(order);
+    }
+
+    @Test
     void create_ShouldCreateOrderSuccessfully() {
 
         OrderItemRequest itemRequest =
@@ -524,7 +566,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByUser_Tenant(
+        when(orderRepository.findByOrderItems_Product_Tenant(
                 eq(tenant),
                 eq(pageable)
         )).thenReturn(orderPage);
@@ -553,7 +595,7 @@ class OrderServiceImplTest {
                 .getCurrentTenant();
 
         verify(orderRepository)
-                .findByUser_Tenant(
+                .findByOrderItems_Product_Tenant(
                         tenant,
                         pageable
                 );
@@ -574,7 +616,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByUser_Tenant(
+        when(orderRepository.findByOrderItems_Product_Tenant(
                 eq(tenant),
                 eq(pageable)
         )).thenReturn(emptyPage);
@@ -603,7 +645,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByIdAndUser_Tenant(
+        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
                 1L,
                 tenant
         )).thenReturn(Optional.of(order));
@@ -624,7 +666,7 @@ class OrderServiceImplTest {
                 .getCurrentTenant();
 
         verify(orderRepository)
-                .findByIdAndUser_Tenant(
+                .findByIdAndOrderItems_Product_Tenant(
                         1L,
                         tenant
                 );
@@ -639,7 +681,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByIdAndUser_Tenant(
+        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
                 1L,
                 tenant
         )).thenReturn(Optional.empty());
@@ -675,7 +717,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByIdAndUser_Tenant(
+        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
                 1L,
                 tenant
         )).thenReturn(Optional.of(order));
@@ -702,7 +744,7 @@ class OrderServiceImplTest {
                 .getCurrentTenant();
 
         verify(orderRepository)
-                .findByIdAndUser_Tenant(
+                .findByIdAndOrderItems_Product_Tenant(
                         1L,
                         tenant
                 );
@@ -725,7 +767,7 @@ class OrderServiceImplTest {
         when(currentUserService.getCurrentTenant())
                 .thenReturn(tenant);
 
-        when(orderRepository.findByIdAndUser_Tenant(
+        when(orderRepository.findByIdAndOrderItems_Product_Tenant(
                 1L,
                 tenant
         )).thenReturn(Optional.empty());

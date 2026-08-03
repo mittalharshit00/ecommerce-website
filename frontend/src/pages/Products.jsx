@@ -1,8 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import {
     getProducts,
+    getProductsByCategory,
+    getTenantProducts,
+    getTenantProductsByCategory,
     deleteProduct
 } from "../services/productService";
 
@@ -25,7 +28,7 @@ function Products() {
         tenant
     } = useAuth();
 
-
+    const location = useLocation();
 
     const [products, setProducts] =
         useState([]);
@@ -50,12 +53,27 @@ function Products() {
     const [page, setPage] =
         useState(0);
 
+    const [showManagedProducts, setShowManagedProducts] =
+        useState(false);
+
 
 
     const [totalPages, setTotalPages] =
         useState(0);
 
+    const selectedCategoryId = useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        const categoryIdParam = params.get("categoryId");
+        const parsedCategoryId = categoryIdParam
+            ? Number(categoryIdParam)
+            : null;
 
+        return Number.isNaN(parsedCategoryId)
+            ? null
+            : parsedCategoryId;
+    }, [location.search]);
+
+    const canManageProducts = isAdmin && showManagedProducts;
 
 
 
@@ -142,16 +160,38 @@ function Products() {
 
 
             setLoading(true);
-
+            setProducts([]);
             setError("");
 
 
 
-            const data =
-                await getProducts(
-                    page,
-                    10
-                );
+            if (showManagedProducts && !tenant) {
+                throw new Error("Tenant information is not available.");
+            }
+
+            const data = showManagedProducts
+                ? (selectedCategoryId
+                    ? await getTenantProductsByCategory(
+                        tenant,
+                        selectedCategoryId,
+                        page,
+                        10
+                    )
+                    : await getTenantProducts(
+                        tenant,
+                        page,
+                        10
+                    ))
+                : (selectedCategoryId
+                    ? await getProductsByCategory(
+                        selectedCategoryId,
+                        page,
+                        10
+                    )
+                    : await getProducts(
+                        page,
+                        10
+                    ));
 
 
 
@@ -190,13 +230,18 @@ function Products() {
         }
 
 
-    }, [page]);
+    }, [page, selectedCategoryId, showManagedProducts, tenant]);
 
 
 
 
 
 
+
+
+    useEffect(() => {
+        setPage(0);
+    }, [selectedCategoryId, showManagedProducts, tenant]);
 
 
     useEffect(() => {
@@ -704,7 +749,7 @@ function Products() {
 
 
                                         {
-                                            isAdmin && (
+                                            canManageProducts && (
 
                                                 <>
 
@@ -842,24 +887,24 @@ function Products() {
 
 
 
-                        {
-                            isAdmin && (
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                className={`btn btn-sm ${showManagedProducts ? "btn-outline-primary" : "btn-primary"}`}
+                                onClick={() => setShowManagedProducts(prev => !prev)}
+                            >
+                                {showManagedProducts ? "Show All Products" : "My Tenant Products"}
+                            </button>
+                        )}
 
-                                <Link
-
-                                    to="/products/create"
-
-                                    className="btn btn-primary btn-sm"
-
-                                >
-
-                                    Create Product
-
-                                </Link>
-
-                            )
-
-                        }
+                        {isAdmin && showManagedProducts && (
+                            <Link
+                                to="/products/create"
+                                className="btn btn-primary btn-sm"
+                            >
+                                Create Product
+                            </Link>
+                        )}
 
 
                     </nav>
@@ -884,7 +929,13 @@ function Products() {
 
 
                     <h2 className="h4">
-                        Product List
+                        {showManagedProducts
+                            ? (selectedCategoryId
+                                ? "My tenant products for selected category"
+                                : "My tenant products")
+                            : (selectedCategoryId
+                                ? "Products for selected category"
+                                : "Product List")}
                     </h2>
 
 

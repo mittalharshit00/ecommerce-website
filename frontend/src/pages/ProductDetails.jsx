@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { getProductById } from "../services/productService";
 import { getImageUrl } from "../utils/imageUtils";
@@ -8,6 +8,7 @@ import { getImageUrl } from "../utils/imageUtils";
 function ProductDetails() {
 
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -55,6 +56,20 @@ function ProductDetails() {
 
     }, [id]);
 
+    const handleBuyNow = () => {
+
+        if (!product?.id) {
+            return;
+        }
+
+        if (product.quantity <= 0) {
+            setError("This product is currently out of stock.");
+            return;
+        }
+
+        setError("");
+        navigate(`/orders/create?productId=${product.id}`);
+    };
 
     const renderPage = (content) => (
 
@@ -336,7 +351,16 @@ function ProductDetails() {
 
 
 
-                        <div className="mt-4">
+                        <div className="mt-4 d-flex flex-wrap gap-2">
+
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleBuyNow}
+                                disabled={product.quantity <= 0}
+                            >
+                                Buy Now
+                            </button>
 
                             <Link
                                 to="/products"
@@ -346,6 +370,12 @@ function ProductDetails() {
                             </Link>
 
                         </div>
+
+                        {error && (
+                            <div className="alert alert-danger mt-3 mb-0">
+                                {error}
+                            </div>
+                        )}
 
 
                     </div>

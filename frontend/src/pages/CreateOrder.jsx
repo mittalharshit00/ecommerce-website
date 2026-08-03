@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { getProducts } from "../services/productService";
 import { createOrder } from "../services/orderService";
@@ -7,6 +7,7 @@ import { createOrder } from "../services/orderService";
 function CreateOrder() {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [products, setProducts] = useState([]);
 
@@ -25,6 +26,17 @@ function CreateOrder() {
         loadProducts();
 
     }, []);
+
+    useEffect(() => {
+
+        const params = new URLSearchParams(location.search);
+        const preselectedProductId = params.get("productId");
+
+        if (preselectedProductId) {
+            setProductId(preselectedProductId);
+        }
+
+    }, [location.search]);
 
     const loadProducts = async () => {
 

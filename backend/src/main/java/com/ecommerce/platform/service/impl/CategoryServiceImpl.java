@@ -56,12 +56,8 @@ public class CategoryServiceImpl implements CategoryService {
         public Page<CategoryResponse> getAll(
                         Pageable pageable) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
-
                 return categoryRepository
-                                .findByTenant(
-                                                tenant,
-                                                pageable)
+                                .findAll(pageable)
                                 .map(categoryMapper::toResponse);
         }
 
@@ -114,12 +110,8 @@ public class CategoryServiceImpl implements CategoryService {
         private Category getCategory(
                         Long id) {
 
-                Tenant tenant = currentUserService.getCurrentTenant();
-
                 return categoryRepository
-                                .findByIdAndTenant(
-                                                id,
-                                                tenant)
+                                .findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Category not found."));
         }

@@ -28,12 +28,12 @@ public interface OrderRepository
     /**
      * Tenant Admin APIs
      */
-    Optional<Order> findByIdAndUser_Tenant(
+    Optional<Order> findByIdAndOrderItems_Product_Tenant(
             Long id,
             Tenant tenant
     );
 
-    Page<Order> findByUser_Tenant(
+    Page<Order> findByOrderItems_Product_Tenant(
             Tenant tenant,
             Pageable pageable
     );

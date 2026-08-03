@@ -183,6 +183,9 @@ function OrderDetails() {
                                         <h4 className="h6">{item.productName}</h4>
                                         <p className="text-muted mb-2">Quantity: {item.quantity}</p>
                                         <p className="text-muted mb-0">Price: ${item.price}</p>
+                                        <Link to={`/products/${item.productId}`} className="btn btn-outline-primary btn-sm mt-3">
+                                            View Product Details
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

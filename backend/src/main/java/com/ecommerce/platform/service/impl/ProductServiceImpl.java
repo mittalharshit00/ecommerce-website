@@ -62,9 +62,8 @@ public class ProductServiceImpl implements ProductService {
 
                 Category category =
                         categoryRepository
-                                .findByIdAndTenant(
-                                        request.getCategoryId(),
-                                        tenant
+                                .findById(
+                                        request.getCategoryId()
                                 )
                                 .orElseThrow(() ->
                                         new ResourceNotFoundException(
@@ -200,15 +199,9 @@ public class ProductServiceImpl implements ProductService {
                         Pageable pageable) {
 
 
-                Tenant tenant =
-                        currentUserService.getCurrentTenant();
-
-
-
                 return productRepository
-                        .findByCategoryIdAndTenant(
+                        .findByCategoryId(
                                 categoryId,
-                                tenant,
                                 pageable
                         )
                         .map(productMapper::toResponse);
@@ -317,23 +310,16 @@ public class ProductServiceImpl implements ProductService {
                 if (request.getCategoryId() != null) {
 
 
-                        Tenant tenant =
-                                currentUserService.getCurrentTenant();
-
-
-
                         Category category =
                                 categoryRepository
-                                        .findByIdAndTenant(
-                                                request.getCategoryId(),
-                                                tenant
+                                        .findById(
+                                                request.getCategoryId()
                                         )
                                         .orElseThrow(() ->
                                                 new ResourceNotFoundException(
                                                         "Category not found."
                                                 )
                                         );
-
 
 
                         product.setCategory(category);

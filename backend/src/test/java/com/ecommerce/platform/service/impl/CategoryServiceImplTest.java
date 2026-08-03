@@ -92,10 +92,7 @@ class CategoryServiceImplTest {
     @Test
     void getById_ShouldReturnCategory() {
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.of(category));
 
         when(categoryMapper.toResponse(category))
@@ -109,10 +106,7 @@ class CategoryServiceImplTest {
     @Test
     void getById_ShouldThrowException_WhenNotFound() {
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> categoryService.getById(1L))
@@ -126,10 +120,7 @@ class CategoryServiceImplTest {
         Page<Category> page =
                 new PageImpl<>(List.of(category));
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByTenant(eq(tenant), any()))
+        when(categoryRepository.findAll(any(PageRequest.class)))
                 .thenReturn(page);
 
         when(categoryMapper.toResponse(category))
@@ -197,10 +188,7 @@ class CategoryServiceImplTest {
 
         request.setName("Mobiles");
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.of(category));
 
         when(categoryRepository.save(category))
@@ -228,10 +216,7 @@ class CategoryServiceImplTest {
 
         request.setName("Mobiles");
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
@@ -243,10 +228,7 @@ class CategoryServiceImplTest {
     @Test
     void delete_ShouldDeleteCategory() {
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.of(category));
 
         categoryService.delete(1L);
@@ -258,10 +240,7 @@ class CategoryServiceImplTest {
     @Test
     void delete_ShouldThrowException_WhenCategoryNotFound() {
 
-        when(currentUserService.getCurrentTenant())
-                .thenReturn(tenant);
-
-        when(categoryRepository.findByIdAndTenant(1L, tenant))
+        when(categoryRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->

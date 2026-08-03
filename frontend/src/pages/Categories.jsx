@@ -177,16 +177,21 @@ function Categories() {
                                             </div>
                                             <span className="badge text-bg-light">Active</span>
                                         </div>
-                                        {isAdmin && (
-                                            <div className="d-flex gap-2 mt-auto">
-                                                <Link to={`/categories/${category.id}/edit`} className="btn btn-outline-secondary btn-sm">
-                                                    Edit
-                                                </Link>
-                                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(category.id)}>
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
+                                        <div className="d-flex flex-wrap gap-2 mt-auto">
+                                            <Link to={`/products?categoryId=${category.id}`} className="btn btn-outline-primary btn-sm">
+                                                View Products
+                                            </Link>
+                                            {isAdmin && (
+                                                <>
+                                                    <Link to={`/categories/${category.id}/edit`} className="btn btn-outline-secondary btn-sm">
+                                                        Edit
+                                                    </Link>
+                                                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(category.id)}>
+                                                        Delete
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
